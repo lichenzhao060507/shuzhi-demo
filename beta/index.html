@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数改指导智能体 · 中小企业数字化水平评测</title>
+<meta name="description" content="依据工信厅企业〔2024〕56 号《中小企业数字化水平评测指标（2024 年版）》，输出可回查的诊断、改造路径与投入产出排序。">
+<meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121210" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231a1916'/%3E%3Ctext x='16' y='23' font-size='17' text-anchor='middle' fill='%23fbfaf7' font-family='serif'%3E数%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/redesign.css">
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#top" aria-label="数改指导智能体 首页">
+      <span class="brand-mark" aria-hidden="true">数</span>
+      <span class="brand-text">
+        <span class="brand-name">数改指导智能体</span>
+        <span class="brand-sub">工信厅企业〔2024〕56 号</span>
+      </span>
+    </a>
+    <nav class="topnav" aria-label="页面导航">
+      <a href="#method">评测方法</a>
+      <a href="#panel-input">开始评测</a>
+      <a href="#panel-output">结果说明</a>
+    </nav>
+    <span class="status" id="status-chip" data-state="loading">正在载入判据…</span>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================================================ 首屏 -->
+  <section class="hero" id="top">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-edition" aria-hidden="true"><span>MANUFACTURING INTELLIGENCE</span><span>01 / DIGITAL DIAGNOSIS</span></div>
+    <div class="hero-copy">
+      <div class="hero-kicker"><span class="kicker-line"></span> 为中小制造企业而设计的决策工具 <span class="kicker-dot"></span> 2024 官方评测依据</div>
+      <p class="eyebrow">工信厅企业〔2024〕56 号<span class="eyebrow-long"> · 附件（一）（二）逐字转写</span></p>
+      <h1>先看清企业卡在哪一步，<br><em>再决定钱往哪儿投。</em></h1>
+      <p class="lede">
+        按官方 15 个采集项算分定级，按 16 个场景查短板，输出诊断、改造路径与「不建议做」清单。每条结论都挂原文出处，点开可回查。
+      </p>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-primary" id="btn-demo">
+          用示例企业试一次
+          <span class="arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="btn" id="btn-fill">填自己的情况</button>
+      </div>
+      <div class="hero-trust">
+        <span>15 个采集项</span>
+        <span>16 个应用场景</span>
+        <span>6 个示例企业</span>
+        <span>结论逐条挂原文</span>
+      </div>
+    </div>
+    <div class="hero-figure" aria-hidden="true"><span class="figure-cross">✳</span><span>FIG. 01 &nbsp; / &nbsp; 从生产现场识别转型路径</span><span>DIAGNOSE → PRIORITIZE → ACT</span></div>
+  </section>
+
+  <!-- ============================================================ 方法 -->
+  <section class="method" id="method" aria-label="评测方法">
+    <article class="reveal" style="--d:0ms">
+      <span class="num">01</span>
+      <h3>算分定级</h3>
+      <p>15 个采集项按官方权重链折算满分 100 分，四级门槛同时卡分数、场景数、约束性场景数三项。</p>
+    </article>
+    <article class="reveal" style="--d:80ms">
+      <span class="num">02</span>
+      <h3>查场景短板</h3>
+      <p>16 个应用场景逐一定级，标出卡住进阶的约束性场景，并给出每个场景的官方四级原文要求。</p>
+    </article>
+    <article class="reveal" style="--d:160ms">
+      <span class="num">03</span>
+      <h3>排投入产出</h3>
+      <p>按前置依赖排出改造顺序，按 ROI 下界排投产比，并把命中投入无效模式的动作单独列成「不建议做」。</p>
+    </article>
+  </section>
+
+  <!-- ============================================================ 开始 -->
+  <section class="start" id="start">
+    <div class="start-inner reveal">
+      <div class="start-copy">
+        <h2>先看一份完整结论，再决定要不要自己填</h2>
+        <p>示例企业是构建时算好的合成样本，六种典型画像各一份。看清交付物长什么样，再花八分钟填自己的。</p>
+        <div class="start-meta">
+          <span>15 个采集项</span>
+          <span>16 个应用场景</span>
+          <span>6 个示例企业</span>
+          <span>四段式结论</span>
+        </div>
+      </div>
+      <div class="start-actions">
+        <button type="button" class="btn btn-primary" id="btn-demo-2">
+          用示例企业试一次
+          <span class="arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="btn" id="btn-fill-2">填自己的情况</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 表单 -->
+  <section class="section" id="panel-input" hidden>
+    <div class="section-head">
+      <h2>企业画像</h2>
+      <p>选项文本与等级描述全部来自官方原文，页面只做渲染。填完 15 个采集项与 16 个场景等级即可出结论。</p>
+    </div>
+
+    <div class="progress" id="progress" hidden>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <span class="progress-text" id="progress-text">0 / 31</span>
+    </div>
+
+    <div class="fixture-bar">
+      <span class="label">示例企业</span>
+      <select id="fixture-select" aria-label="选择示例企业"></select>
+      <button type="button" class="btn" id="btn-load-fixture">载入并评测</button>
+      <span class="label" style="margin-left:auto">合成样本，非真实企业数据</span>
+    </div>
+
+    <form id="profile-form" novalidate>
+      <fieldset class="group-block">
+        <legend>企业与经营基线 <span class="hint-inline">用于投入产出测算，留空不影响定级</span></legend>
+        <div class="field-grid">
+          <label class="field wide">
+            <span>企业名称</span>
+            <input type="text" name="name" id="f-name" placeholder="例：某精密件制造企业" autocomplete="off">
+          </label>
+          <label class="field">
+            <span>年营业收入 <span class="unit">万元</span></span>
+            <input type="number" name="revenue_wan" id="f-revenue" min="0" step="1" placeholder="6000">
+          </label>
+          <label class="field">
+            <span>年数字化投入 <span class="unit">万元</span></span>
+            <input type="number" name="digital_spend_wan" id="f-spend" min="0" step="1" placeholder="120">
+          </label>
+          <label class="field">
+            <span>年综合能源消费 <span class="unit">吨标准煤</span></span>
+            <input type="number" name="energy_wan" id="f-energy" min="0" step="1" placeholder="900">
+          </label>
+          <label class="field">
+            <span>员工数 <span class="unit">人</span></span>
+            <input type="number" name="headcount" id="f-headcount" min="0" step="1" placeholder="200">
+          </label>
+          <label class="field">
+            <span>年成本 <span class="unit">万元</span></span>
+            <input type="number" name="cost_wan" id="f-cost" min="0" step="1" placeholder="3600">
+          </label>
+          <label class="field">
+            <span>企业所在地 <span class="unit">选填</span></span>
+            <input type="text" name="province" id="f-province" placeholder="例：江苏" autocomplete="off">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="group-block">
+        <legend>采集项 1—15 <span class="hint-inline">官方评测表，逐字转写</span></legend>
+        <div id="indicator-groups"></div>
+      </fieldset>
+
+      <fieldset class="group-block">
+        <legend>应用场景 1—4 级 <span class="hint-inline">官方等级判定表，逐字转写</span></legend>
+        <div id="scenario-groups"></div>
+      </fieldset>
+
+      <div class="form-foot">
+        <button type="submit" class="btn btn-primary" id="btn-evaluate">
+          生成诊断与改造路径
+          <span class="arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="btn btn-ghost" id="btn-reset">清空重填</button>
+        <span class="form-status" id="form-status" role="status"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============================================================ 结果头 -->
+  <div class="result-head" id="result-head" hidden>
+    <div class="gauge">
+      <div>
+        <div class="gauge-label">评测得分</div>
+        <div class="gauge-score">
+          <span class="gauge-num" id="score-value">0</span>
+          <span class="gauge-max">/ 100</span>
+        </div>
+      </div>
+      <div class="gauge-right">
+        <div class="gauge-label">水平等级</div>
+        <div class="level-title">
+          <span class="level-name" id="level-value">—</span>
+          <span class="level-chip" id="level-chip">—</span>
+        </div>
+        <div class="scale" aria-hidden="true">
+          <div class="rail">
+            <div class="rail-fill" id="gauge-fill"></div>
+            <div class="rail-ticks"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i></div>
+            <div class="rail-knob" id="gauge-knob"></div>
+          </div>
+          <div class="rail-labels">
+            <span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span>
+          </div>
+        </div>
+        <p class="gap-line" id="gap-line"></p>
+      </div>
+    </div>
+    <div class="judge-strip" id="judge-strip"></div>
+  </div>
+
+  <!-- ============================================================ 结果体 -->
+  <div class="result-layout" id="result-layout" hidden>
+    <nav class="toc" aria-label="结果目录">
+      <span class="toc-label">目录</span>
+      <a href="#sec-diagnosis"><span class="n">一</span>诊断</a>
+      <a href="#sec-pathway"><span class="n">二</span>改造路径</a>
+      <a href="#sec-ranking"><span class="n">三</span>投入产出</a>
+      <a href="#sec-policy"><span class="n">四</span>政策注记</a>
+    </nav>
+
+    <div class="result-body" id="output-panel">
+
+      <section class="out-section" id="sec-diagnosis" aria-labelledby="h-diagnosis">
+        <div class="out-head">
+          <span class="n">一</span>
+          <h3 id="h-diagnosis">诊断</h3>
+          <span class="sub" id="sub-diagnosis"></span>
+        </div>
+        <div id="out-diagnosis"></div>
+      </section>
+
+      <section class="out-section" id="sec-pathway" aria-labelledby="h-pathway">
+        <div class="out-head">
+          <span class="n">二</span>
+          <h3 id="h-pathway">改造路径</h3>
+          <span class="sub" id="sub-pathway"></span>
+        </div>
+        <div id="out-pathway"></div>
+      </section>
+
+      <section class="out-section" id="sec-ranking" aria-labelledby="h-ranking">
+        <div class="out-head">
+          <span class="n">三</span>
+          <h3 id="h-ranking">投入产出排序与「不建议做」</h3>
+          <span class="sub" id="sub-ranking"></span>
+        </div>
+        <div id="out-ranking"></div>
+      </section>
+
+      <section class="out-section" id="sec-policy" aria-labelledby="h-policy">
+        <div class="out-head">
+          <span class="n">四</span>
+          <h3 id="h-policy">政策注记</h3>
+          <span class="sub" id="sub-policy"></span>
+        </div>
+        <div id="out-policy"></div>
+      </section>
+
+      <details class="assumptions">
+        <summary>本次结果的口径、假设与生成信息</summary>
+        <div class="assumptions-body" id="out-assumptions"></div>
+      </details>
+
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <p><strong>判据基准</strong>：工业和信息化部办公厅《中小企业数字化水平评测指标（2024 年版）》（工信厅企业〔2024〕56 号）附件（一）数字化基础、管理及成效评测表、附件（二）数字化经营应用场景等级判定表。</p>
+    <p style="margin-top:10px"><strong>口径纪律</strong>：等级、总分、场景门槛由确定性代码计算，与后端引擎逐条对齐并经 6 个预计算样本回归验证；官方未覆盖的口径（如采集项 8 为 6 选项单选）显式披露；本项目构造的反模式判据均标注来源，评审可复核可质疑。</p>
+    <div class="footer-meta">
+      <span>演示用途</span>
+      <span>示例企业为合成样本</span>
+      <span id="footer-mode">前端实时计算</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/engine.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

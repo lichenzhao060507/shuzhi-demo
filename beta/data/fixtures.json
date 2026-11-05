@@ -1,0 +1,65 @@
+{
+  "fixtures": [
+    {
+      "name": "ap0_无等级.json",
+      "id": "ap0_无等级",
+      "label": "无等级",
+      "note": "全项最简作答，用于验证「无等级」判定与最低门槛提示",
+      "provenance": "未标注",
+      "total_score": 0.0,
+      "level": null,
+      "level_name": "无等级"
+    },
+    {
+      "name": "ap1_只买设备不联网.json",
+      "id": "ap1_只买设备不联网",
+      "label": "只买设备不联网",
+      "note": "反模式 AP1：设备数字化率 (60%,100%]、设备联网率 [0-10%]",
+      "provenance": "未标注",
+      "total_score": 51.95,
+      "level": 2,
+      "level_name": "规范级"
+    },
+    {
+      "name": "ap2_只上系统不跑流程.json",
+      "id": "ap2_只上系统不跑流程",
+      "label": "只上系统不跑流程",
+      "note": "反模式 AP2：采集项 5 全覆盖，但生产管控/质量管理仍为一级",
+      "provenance": "未标注",
+      "total_score": 59.95,
+      "level": 1,
+      "level_name": "初始级"
+    },
+    {
+      "name": "ap3_只做数据采集不做分析.json",
+      "id": "ap3_只做数据采集不做分析",
+      "label": "只做数据采集不做分析",
+      "note": "反模式 AP3：自动采集覆盖 7 个环节，决策支持场景仍为一级",
+      "provenance": "未标注",
+      "total_score": 56.38,
+      "level": 2,
+      "level_name": "规范级"
+    },
+    {
+      "name": "ap4_只追补贴不建能力.json",
+      "id": "ap4_只追补贴不建能力",
+      "label": "只追补贴不建能力",
+      "note": "反模式 AP4：投入占比 (40%,60%]，但总分够不到规范级",
+      "provenance": "未标注",
+      "total_score": 33.68,
+      "level": 1,
+      "level_name": "初始级"
+    },
+    {
+      "name": "baseline_二级规范级.json",
+      "id": "baseline_二级规范级",
+      "label": "二级规范级",
+      "note": "对照样例：规范级企业，不命中任何反模式",
+      "provenance": "未标注",
+      "total_score": 54.95,
+      "level": 2,
+      "level_name": "规范级"
+    }
+  ],
+  "count": 6
+}
