@@ -1,0 +1,217 @@
+/*
+ * A connected narrative from moving factory floor to diagnosis.
+ * The page uses one navy atmosphere and a restrained champagne-gold guide.
+ * No evaluation data, form identifiers or output logic is changed here.
+ */
+
+html { scroll-padding-top: 82px; }
+#method, #scenario-atlas, #start { scroll-margin-top: 82px; }
+main {
+  background:
+    radial-gradient(ellipse 65% 21% at 65% 48%, rgba(37,73,97,.18), transparent 85%),
+    linear-gradient(180deg,#071a2b 0%,#071a2b 38%,#0b2236 65%,#071a2b 83%);
+}
+
+/* The moving image dissolves into the same dark atmosphere as the next act. */
+.hero { border-bottom: 0; }
+.hero-transition {
+  position: absolute; inset: auto 0 -1px; z-index: 4;
+  height: clamp(160px, 23vh, 280px);
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(7,26,43,0),rgba(7,26,43,.7) 53%,#071a2b 100%);
+}
+.hero-scroll { z-index: 6; }
+
+/* The previous bright ticker cut the story in half. This is a quiet handoff. */
+.motion-marquee {
+  position: relative; z-index: 2; overflow: visible;
+  background: #071a2b; color: #d9e2e8;
+  border: 0;
+}
+.motion-marquee::before {
+  content: ""; position: absolute; top: 0; left: max(48px,calc((100vw - 1344px)/2 + 48px));
+  right: max(48px,calc((100vw - 1344px)/2 + 48px)); height: 1px;
+  background: linear-gradient(90deg,rgba(244,187,117,.85),rgba(115,150,174,.24) 30%,rgba(115,150,174,.08));
+}
+.marquee-track {
+  width: min(100%,1344px); min-width: 0; max-width: 1344px;
+  margin: 0 auto; padding: 0 48px;
+  display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
+  animation: none; transform: none;
+}
+.marquee-track > span {
+  display: flex; align-items: center; gap: 16px; min-width: 0;
+  white-space: normal; padding: 25px 18px;
+  border-right: 1px solid rgba(125,156,176,.11);
+  font: 400 14px/1.4 var(--font-body); letter-spacing: .015em;
+  color: #b9cbd8;
+}
+.marquee-track > span:first-child { padding-left: 0; }
+.marquee-track > span:last-child { border: 0; }
+.marquee-track b { font: 600 18px/1 var(--font-mono); color: #eab579; }
+
+/* No separate three-card plateau: the same top rule joins all method steps. */
+.method {
+  padding-top: 82px; padding-bottom: 60px;
+  column-gap: 0; row-gap: 0;
+}
+.story-intro { margin-bottom: 44px; }
+.story-overline, .signal-eyebrow, .start-overline {
+  color: #edbd85; letter-spacing: .11em; font: 12.5px/1.5 var(--font-mono);
+}
+.story-overline { margin-bottom: 22px; }
+.story-intro > p { border-left-color: rgba(244,187,117,.36); }
+.method article, .method article:first-child {
+  min-height: 230px; padding: 30px 30px 34px;
+  border: 0; border-top: 1px solid rgba(148,175,194,.28); border-radius: 0;
+  background: rgba(13,38,58,.28); box-shadow: none;
+}
+.method article:not(:last-of-type) { border-right: 1px solid rgba(148,175,194,.1); }
+.method article:hover {
+  background: rgba(25,56,79,.52);
+  border-top-color: rgba(244,187,117,.66);
+  transform: translateY(-3px);
+}
+.method .num { font-size: 40px; margin-bottom: 26px; }
+.method article::after {
+  top: -2px; bottom: auto; left: 30px; right: auto;
+  height: 2px; width: 64px; background: #eab579;
+  opacity: .58; transform: none;
+}
+.method article:hover::after { transform: none; opacity: 1; }
+
+/* A short sentence does the narrative work between the visual chapters. */
+.method-handoff, .signal-handoff {
+  display: flex; align-items: center; justify-content: flex-start;
+  gap: 22px; color: #b9cad7;
+}
+.method-handoff {
+  grid-column: 1/-1;
+  padding: 62px 2px 0;
+}
+.method-handoff p, .signal-handoff p {
+  font-size: 15px; line-height: 1.65; margin: 0;
+}
+.handoff-line { display: block; flex: 0 1 130px; height: 1px; background: #36536a; overflow: hidden; }
+.handoff-line i { display: block; width: 46%; height: 100%; background: #eab579; }
+.handoff-arrow { font: 26px/1 var(--font-mono); color: #eab579; }
+
+.signal-section {
+  background:
+    radial-gradient(ellipse 50% 63% at 74% 42%,rgba(42,82,103,.3),transparent 80%),
+    linear-gradient(180deg,#071a2b 0%,#0c2539 19%,#0c2539 72%,#071a2b 100%);
+  border: 0;
+}
+.signal-section::before {
+  opacity: .72;
+  background: radial-gradient(ellipse 48% 51% at 74% var(--signal-light-y,48%),rgba(203,148,81,.09),transparent 75%);
+}
+.signal-inner { min-height: 660px; padding-top: 64px; padding-bottom: 22px; }
+.signal-active { background: rgba(13,38,58,.55); }
+.signal-handoff {
+  max-width: 1344px; margin: 0 auto; padding: 34px 48px 76px;
+}
+
+/* The invitation grows out of the previous section instead of floating away. */
+.start { padding-top: 0; padding-bottom: 80px; }
+.start-inner {
+  border: 0; border-top: 1px solid rgba(148,175,194,.3);
+  border-radius: 0; padding: 62px 24px 74px;
+  background:
+    radial-gradient(ellipse 38% 85% at 85% 25%,rgba(230,171,100,.1),transparent 78%),
+    linear-gradient(180deg,rgba(19,43,64,.5),rgba(7,26,43,0));
+  box-shadow: none;
+}
+.start-inner::before {
+  top: -2px; left: 0; bottom: auto;
+  width: 150px; height: 2px;
+  background: linear-gradient(90deg,#f4bb75,rgba(244,187,117,0));
+}
+.start-overline { margin: 0 0 22px; }
+.start-copy h2 { margin-bottom: 18px; }
+.start-copy p { max-width: 48em; }
+.start-meta { margin-top: 22px; }
+.start-meta span { border-left: 1px solid rgba(244,187,117,.42); padding-left: 10px; }
+
+/* A persistent chapter index ties the scroll gestures to a single route. */
+.journey-rail {
+  --journey-progress: 0%;
+  position: fixed; top: 51%; left: 14px; transform: translateY(-50%) translateX(-8px);
+  z-index: 55; display: flex; flex-direction: column; gap: 14px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 360ms ease,transform 360ms ease;
+}
+.journey-rail.is-visible { opacity: 1; pointer-events: auto; transform: translateY(-50%) translateX(0); }
+.journey-rail-line {
+  position: absolute; top: -12px; bottom: -12px; left: 0;
+  width: 1px; background: rgba(148,175,194,.24);
+}
+.journey-rail-line i {
+  display: block; width: 100%; height: var(--journey-progress);
+  background: #f4bb75; box-shadow: 0 0 9px rgba(244,187,117,.34);
+}
+.journey-rail a {
+  position: relative; display: flex; align-items: center; gap: 12px;
+  width: 38px; min-height: 35px; overflow: hidden; white-space: nowrap;
+  padding: 7px 9px; color: #8aa5b5; background: rgba(9,28,44,.76);
+  border: 1px solid rgba(118,147,166,.18); border-radius: 0 20px 20px 0;
+  font: 0/1.2 var(--font-body); text-decoration: none;
+  transition: width 250ms ease, background 250ms, color 250ms;
+}
+.journey-rail a span { font: 600 12px/1 var(--font-mono); letter-spacing: .03em; }
+.journey-rail a.is-active { color: #f4bb75; border-color: rgba(244,187,117,.55); }
+.journey-rail a:hover, .journey-rail a:focus-visible {
+  width: 146px; font-size: 12px; color: #f4f1e9;
+  background: #143149; text-decoration: none;
+}
+
+/* Reveal is a light continuity cue, never a second hero entrance. */
+.reveal { transform: translateY(9px); transition-duration: 570ms; }
+.reveal.in { transform: none; }
+
+@media (max-width: 1100px) {
+  .journey-rail { display: none; }
+  .method article, .method article:first-child { padding-inline: 22px; }
+}
+@media (max-width: 980px) {
+  .method { row-gap: 0; }
+  .method article, .method article:first-child {
+    min-height: 0; border: 0; border-left: 1px solid rgba(148,175,194,.27);
+    border-radius: 0; padding: 22px 24px 30px;
+  }
+  .method article:not(:last-of-type) { border-right: 0; }
+  .method article::after { left: -2px; top: 22px; width: 2px; height: 42px; }
+  .method .num { margin-bottom: 14px; }
+  .method-handoff { padding-top: 35px; }
+  .signal-inner { min-height: 0; padding-top: 55px; }
+}
+@media (max-width: 720px) {
+  .hero-transition { height: 180px; }
+  .motion-marquee::before { left: 20px; right: 20px; }
+  .marquee-track { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 0 20px; }
+  .marquee-track > span { gap: 12px; padding: 17px 10px; font-size: 12px; }
+  .marquee-track > span:nth-child(2) { border-right: 0; }
+  .marquee-track > span:first-child { padding-left: 0; }
+  .marquee-track b { font-size: 15px; }
+  .method { padding-top: 60px; padding-bottom: 30px; }
+  .story-intro { margin-bottom: 28px; }
+  .method-handoff, .signal-handoff { gap: 12px; }
+  .method-handoff p, .signal-handoff p { font-size: 13.5px; }
+  .handoff-line { flex-basis: 35px; }
+  .signal-handoff { padding: 12px 20px 58px; }
+  .start { padding-bottom: 54px; }
+  .start-inner { padding: 40px 14px 44px; }
+  .start-overline { margin-bottom: 14px; }
+}
+@media (max-width: 480px) {
+  .motion-marquee::before { left: 16px; right: 16px; }
+  .marquee-track { padding-inline: 16px; }
+  .method article, .method article:first-child { padding: 22px 18px 27px; }
+  .method-handoff { padding: 27px 0 0; }
+  .signal-handoff { padding-inline: 16px; }
+  .start-inner { padding-inline: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey-rail, .journey-rail a, .reveal { transition: none; }
+  .method article:hover { transform: none; }
+}

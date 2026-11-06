@@ -9,9 +9,19 @@
 <meta name="theme-color" content="#121210" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231a1916'/%3E%3Ctext x='16' y='23' font-size='17' text-anchor='middle' fill='%23fbfaf7' font-family='serif'%3E数%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/redesign.css">
+<link rel="stylesheet" href="assets/motion-hero.css">
+<link rel="stylesheet" href="assets/spectacle.css">
+<link rel="stylesheet" href="assets/cinematic-scene.css">
+<link rel="stylesheet" href="assets/typography.css">
+<link rel="stylesheet" href="assets/continuity.css">
+<link rel="stylesheet" href="assets/chapter-film.css">
+<link rel="stylesheet" href="assets/scenario-gallery.css">
+<link rel="stylesheet" href="assets/hero-editorial.css">
 </head>
 <body>
 <a class="skip-link" href="#main">跳到主要内容</a>
+<div class="page-scroll-progress" aria-hidden="true"><span></span></div>
 
 <header class="topbar" id="topbar">
   <div class="topbar-inner">
@@ -23,79 +33,184 @@
       </span>
     </a>
     <nav class="topnav" aria-label="页面导航">
-      <a href="#method">评测方法</a>
-      <a href="#panel-input">开始评测</a>
-      <a href="#panel-output">结果说明</a>
+      <a href="#method">评测怎么做</a>
+      <a href="#scenario-atlas">16 个场景</a>
+      <a href="#start">开始评测</a>
     </nav>
     <span class="status" id="status-chip" data-state="loading">正在载入判据…</span>
   </div>
 </header>
+
+<nav class="journey-rail" aria-label="了解工具的三个步骤">
+  <span class="journey-rail-line" aria-hidden="true"><i></i></span>
+  <a href="#method" data-chapter="method"><span>01</span> 怎么判断</a>
+  <a href="#scenario-atlas" data-chapter="scenario"><span>02</span> 查哪些环节</a>
+  <a href="#start" data-chapter="start"><span>03</span> 试一份报告</a>
+</nav>
 
 <main id="main">
 
   <!-- ============================================================ 首屏 -->
   <section class="hero" id="top">
     <div class="hero-bg" aria-hidden="true"></div>
+    <canvas class="hero-cinema" id="hero-cinema" aria-hidden="true"></canvas>
+    <div class="hero-beam" aria-hidden="true"></div>
+    <canvas class="hero-particles" id="hero-particles" aria-hidden="true"></canvas>
+    <div class="hero-transition" aria-hidden="true"></div>
+    <div class="hero-edition" aria-hidden="true"><span>INDUSTRIAL DIAGNOSIS / 2024</span><span>01 — DIGITAL ASSESSMENT</span></div>
     <div class="hero-copy">
-      <p class="eyebrow">工信厅企业〔2024〕56 号<span class="eyebrow-long"> · 附件（一）（二）逐字转写</span></p>
-      <h1>先看清企业卡在哪一步，<br><em>再决定钱往哪儿投。</em></h1>
+      <p class="eyebrow"><span class="eyebrow-year">2024</span><span class="eyebrow-divider" aria-hidden="true"></span>工信部中小企业数字化水平评测指标</p>
+      <h1><span class="hero-line hero-line-first">中小制造企业</span><em class="hero-line hero-line-second">数字化诊断<span class="hero-period">.</span></em></h1>
       <p class="lede">
-        按官方 15 个采集项算分定级，按 16 个场景查短板，输出诊断、改造路径与「不建议做」清单。每条结论都挂原文出处，点开可回查。
+        依据 15 项评测指标计算数字化等级，对照 16 个业务场景查找短板。报告列出改造顺序、不建议开展的事项，以及可以逐条核对的政策依据；有成本参数时，再估算投入产出区间。
       </p>
       <div class="hero-actions">
-        <button type="button" class="btn btn-primary" id="btn-demo">
-          用示例企业试一次
+        <button type="button" class="btn btn-primary" id="btn-fill">
+          开始评测
           <span class="arrow" aria-hidden="true">→</span>
         </button>
-        <button type="button" class="btn" id="btn-fill">填自己的情况</button>
+        <button type="button" class="btn" id="btn-demo">查看示例报告</button>
       </div>
-      <div class="hero-trust">
-        <span>15 个采集项</span>
-        <span>16 个应用场景</span>
-        <span>6 个示例企业</span>
-        <span>结论逐条挂原文</span>
+      <div class="hero-trust hero-facts" aria-label="评测工具概要">
+        <div class="hero-fact"><strong>15</strong><span>项评测指标</span></div>
+        <div class="hero-fact"><strong>16</strong><span>个业务场景</span></div>
+        <div class="hero-fact"><strong>2024</strong><span>年版指标依据</span></div>
       </div>
     </div>
+    <div class="hero-figure" aria-hidden="true"><span class="figure-cross">✳</span><span>FIG. 01 &nbsp; / &nbsp; 制造现场与数字化评测</span><span>ASSESSMENT / 2024</span></div>
+    <button type="button" class="cinema-toggle" id="cinema-toggle" aria-pressed="false">
+      <span class="cinema-toggle-led" aria-hidden="true"></span>
+      <span id="cinema-toggle-label">动态场景加载中</span>
+    </button>
+    <div class="hero-scroll" aria-hidden="true"><span>接着往下看</span><i></i></div>
   </section>
+
+  <div class="motion-marquee" aria-label="使用流程：填写评测内容、核对场景等级、排列改造先后、查看政策依据">
+    <div class="marquee-track" aria-hidden="true">
+      <span><b>01</b> 填写评测内容</span>
+      <span><b>02</b> 核对场景等级</span>
+      <span><b>03</b> 排列改造先后</span>
+      <span><b>04</b> 查看政策依据</span>
+    </div>
+  </div>
 
   <!-- ============================================================ 方法 -->
   <section class="method" id="method" aria-label="评测方法">
+    <div class="chapter-film chapter-film-method" aria-hidden="true">
+      <canvas class="chapter-film-canvas" data-film="method" data-image="assets/img/method-aisle.webp"></canvas>
+      <div class="chapter-film-shade"></div>
+    </div>
+    <div class="story-intro reveal">
+      <div><p class="story-overline">01 / HOW IT WORKS · 怎么判断</p><h2>评测如何进行<span>。</span></h2></div>
+      <p>目前属于哪一级？<br>哪些业务环节还没达标？<br>下一笔预算应该先投哪里？</p>
+    </div>
     <article class="reveal" style="--d:0ms">
       <span class="num">01</span>
-      <h3>算分定级</h3>
-      <p>15 个采集项按官方权重链折算满分 100 分，四级门槛同时卡分数、场景数、约束性场景数三项。</p>
+      <h3>先算官方等级</h3>
+      <p>15 项指标按官方权重计分。能不能升级，还要同时核对场景数量和约束性场景的等级门槛。</p>
     </article>
     <article class="reveal" style="--d:80ms">
       <span class="num">02</span>
-      <h3>查场景短板</h3>
-      <p>16 个应用场景逐一定级，标出卡住进阶的约束性场景，并给出每个场景的官方四级原文要求。</p>
+      <h3>再查业务环节</h3>
+      <p>从设计、生产到仓储物流，逐项找出尚未达标的环节。每个场景都可以展开查看官方要求。</p>
     </article>
     <article class="reveal" style="--d:160ms">
       <span class="num">03</span>
-      <h3>排投入产出</h3>
-      <p>按前置依赖排出改造顺序，按 ROI 下界排投产比，并把命中投入无效模式的动作单独列成「不建议做」。</p>
+      <h3>最后决定先做什么</h3>
+      <p>先按前置条件安排改造顺序；有成本参数的示例再测算投入产出。可能白花钱的动作，会单独提醒。</p>
     </article>
+    <div class="method-handoff reveal">
+      <span class="handoff-line"><i></i></span>
+      <p>算出等级只是第一步。真正影响下一步改造的，是具体业务环节。</p>
+      <span class="handoff-arrow">↓</span>
+    </div>
+  </section>
+
+  <section class="signal-section" id="scenario-atlas" aria-labelledby="signal-title">
+    <div class="chapter-film chapter-film-scenario" aria-hidden="true">
+      <canvas class="chapter-film-canvas" data-film="scenario" data-image="assets/img/scenario-cell.webp"></canvas>
+      <div class="chapter-film-shade"></div>
+    </div>
+    <div class="signal-inner">
+      <div class="signal-copy reveal">
+        <p class="signal-eyebrow">02 / BUSINESS SCENARIOS · 业务场景</p>
+        <h2 id="signal-title">分数背后，<br><em>还有 16 个具体环节。</em></h2>
+        <p class="signal-description">点选右边的节点，就能查看评测涉及的环节：设计、生产、质量、物流……这张图展示评测范围，企业的实际等级仍以填表结果为准。</p>
+        <div class="signal-active" aria-live="off">
+          <button class="signal-preview-zoom" id="signal-preview-zoom" type="button" aria-label="放大当前场景主题图">
+            <img class="signal-preview-image is-current" id="signal-preview-a" src="assets/img/scenes/s01.webp" alt="" width="1200" height="676" decoding="async">
+            <img class="signal-preview-image" id="signal-preview-b" alt="" width="1200" height="676" decoding="async">
+            <span class="signal-preview-counter" id="signal-preview-counter">01 / 16</span>
+            <span class="signal-preview-action">查看大图 ↗</span>
+          </button>
+          <div class="signal-active-body">
+            <span class="signal-active-label">正在查看 / SELECTED SCENARIO</span>
+            <div class="signal-active-main"><strong id="signal-id">S01</strong><span id="signal-name">产品设计</span></div>
+            <span class="signal-type" id="signal-type">工信部 2024 年评测场景</span>
+          </div>
+        </div>
+        <button type="button" class="signal-toggle" id="signal-toggle" aria-pressed="false"><span class="signal-toggle-icon" aria-hidden="true">Ⅱ</span><span id="signal-toggle-text">暂停自动扫描</span></button>
+        <p class="signal-disclaimer">这里是评测场景目录，不是企业诊断结果。</p>
+      </div>
+      <div class="signal-visual reveal" aria-label="16 个应用场景节点，可逐一选择">
+        <div class="signal-orbit">
+          <div class="signal-halo" aria-hidden="true"></div>
+          <div class="signal-circles" aria-hidden="true"></div>
+          <div class="signal-sweep" aria-hidden="true"></div>
+          <div class="signal-center" aria-hidden="true"><strong>16</strong><span>SCENARIOS</span></div>
+          <div class="signal-nodes" id="signal-nodes"></div>
+        </div>
+        <div class="signal-meta"><span>OFFICIAL SCENARIO MAP</span><span>01—16 / INTERACTIVE</span></div>
+      </div>
+    </div>
+    <div class="signal-handoff reveal">
+      <span class="handoff-line"><i></i></span>
+      <p>知道评测涵盖什么，再来看看一份结果究竟长什么样。</p>
+      <span class="handoff-arrow">↓</span>
+    </div>
+    <dialog class="signal-lightbox" id="signal-lightbox" aria-label="业务场景主题图预览">
+      <button class="signal-lightbox-close" id="signal-lightbox-close" type="button" aria-label="关闭预览">×</button>
+      <div class="signal-lightbox-frame">
+        <img id="signal-lightbox-image" alt="" width="1200" height="676">
+      </div>
+      <div class="signal-lightbox-footer">
+        <div>
+          <span class="signal-lightbox-kicker">16 BUSINESS SCENARIOS · 主题示意</span>
+          <strong id="signal-lightbox-title">S01 产品设计</strong>
+          <span class="signal-lightbox-note">AI 生成的概念画面，并非真实企业现场或等级判定依据。</span>
+        </div>
+        <div class="signal-lightbox-controls">
+          <button id="signal-lightbox-prev" type="button" aria-label="查看上一场景">←</button>
+          <button id="signal-lightbox-next" type="button" aria-label="查看下一场景">→</button>
+        </div>
+      </div>
+    </dialog>
   </section>
 
   <!-- ============================================================ 开始 -->
   <section class="start" id="start">
+    <div class="chapter-film chapter-film-report" aria-hidden="true">
+      <canvas class="chapter-film-canvas" data-film="report" data-image="assets/img/report-workbench.webp"></canvas>
+      <div class="chapter-film-shade"></div>
+    </div>
     <div class="start-inner reveal">
       <div class="start-copy">
-        <h2>先看一份完整结论，再决定要不要自己填</h2>
-        <p>示例企业是构建时算好的合成样本，六种典型画像各一份。看清交付物长什么样，再花八分钟填自己的。</p>
+        <p class="start-overline">03 / SEE THE REPORT · 查看报告</p>
+        <h2>先试一遍，再填自己的。</h2>
+        <p>示例报告会呈现等级、未达标场景、改造先后和「不建议做」清单。六份样本都是合成数据，不对应真实企业。</p>
         <div class="start-meta">
-          <span>15 个采集项</span>
-          <span>16 个应用场景</span>
-          <span>6 个示例企业</span>
-          <span>四段式结论</span>
+          <span>等级结论</span>
+          <span>未达标场景</span>
+          <span>改造顺序</span>
+          <span>不建议做</span>
         </div>
       </div>
       <div class="start-actions">
         <button type="button" class="btn btn-primary" id="btn-demo-2">
-          用示例企业试一次
+          查看示例报告
           <span class="arrow" aria-hidden="true">→</span>
         </button>
-        <button type="button" class="btn" id="btn-fill-2">填自己的情况</button>
+        <button type="button" class="btn" id="btn-fill-2">开始填写</button>
       </div>
     </div>
   </section>
@@ -103,8 +218,8 @@
   <!-- ============================================================ 表单 -->
   <section class="section" id="panel-input" hidden>
     <div class="section-head">
-      <h2>企业画像</h2>
-      <p>选项文本与等级描述全部来自官方原文，页面只做渲染。填完 15 个采集项与 16 个场景等级即可出结论。</p>
+      <h2>填写企业情况</h2>
+      <p>先填经营基线，再按实际情况选择官方指标与场景等级。经营基线可以留空，不影响等级判定。</p>
     </div>
 
     <div class="progress" id="progress" hidden>
@@ -214,7 +329,7 @@
       <a href="#sec-diagnosis"><span class="n">一</span>诊断</a>
       <a href="#sec-pathway"><span class="n">二</span>改造路径</a>
       <a href="#sec-ranking"><span class="n">三</span>投入产出</a>
-      <a href="#sec-policy"><span class="n">四</span>政策注记</a>
+      <a href="#sec-policy"><span class="n">四</span>政策依据</a>
     </nav>
 
     <div class="result-body" id="output-panel">
@@ -249,7 +364,7 @@
       <section class="out-section" id="sec-policy" aria-labelledby="h-policy">
         <div class="out-head">
           <span class="n">四</span>
-          <h3 id="h-policy">政策注记</h3>
+          <h3 id="h-policy">政策依据</h3>
           <span class="sub" id="sub-policy"></span>
         </div>
         <div id="out-policy"></div>
@@ -268,7 +383,7 @@
 <footer class="footer">
   <div class="footer-inner">
     <p><strong>判据基准</strong>：工业和信息化部办公厅《中小企业数字化水平评测指标（2024 年版）》（工信厅企业〔2024〕56 号）附件（一）数字化基础、管理及成效评测表、附件（二）数字化经营应用场景等级判定表。</p>
-    <p style="margin-top:10px"><strong>口径纪律</strong>：等级、总分、场景门槛由确定性代码计算，与后端引擎逐条对齐并经 6 个预计算样本回归验证；官方未覆盖的口径（如采集项 8 为 6 选项单选）显式披露；本项目构造的反模式判据均标注来源，评审可复核可质疑。</p>
+    <p style="margin-top:10px"><strong>计算与说明</strong>：总分、等级与场景门槛由前端规则计算，并用 6 份预计算样本逐项校验。官方文件没有明确规定的部分，以及工具自行补充的「不建议做」判据，都会在报告中说明来源与适用范围。</p>
     <div class="footer-meta">
       <span>演示用途</span>
       <span>示例企业为合成样本</span>
@@ -279,5 +394,11 @@
 
 <script src="assets/engine.js"></script>
 <script src="assets/app.js"></script>
+<script src="assets/motion-hero.js"></script>
+<script src="assets/spectacle.js"></script>
+<script src="assets/scenario-atlas.js"></script>
+<script src="assets/cinematic-scene.js"></script>
+<script src="assets/continuity.js"></script>
+<script src="assets/chapter-film.js"></script>
 </body>
 </html>

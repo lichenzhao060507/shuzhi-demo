@@ -1,0 +1,199 @@
+/*
+ * Typography standard for the digital-transformation diagnosis site:
+ * Chinese headings: Source Han Serif; Chinese body: Source Han Sans;
+ * English, labels and numerals: Times / Times New Roman.
+ *
+ * The self-hosted Noto CJK subsets are from the same Source Han/Noto CJK
+ * open-source type design. They prevent Chinese fallback to a generic system
+ * serif/sans font when Adobe Source Han is not installed.
+ */
+@font-face {
+  font-family: "Site CJK Serif";
+  src: url("fonts/noto-serif-sc-regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Site CJK Serif";
+  src: url("fonts/noto-serif-sc-bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Site CJK Sans";
+  src: url("fonts/noto-sans-sc-regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Site CJK Sans";
+  src: url("fonts/noto-sans-sc-bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --font-english: "Times New Roman", Times, "Nimbus Roman", serif;
+  --font-display: "Times New Roman", Times, "Source Han Serif SC",
+    "Source Han Serif CN", "Site CJK Serif", "Noto Serif CJK SC",
+    "Songti SC", SimSun, serif;
+  --font-body: "Times New Roman", Times, "Source Han Sans SC",
+    "Source Han Sans CN", "Site CJK Sans", "Noto Sans CJK SC",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* Retain tabular numerals for score reports without a separate Latin face. */
+  --font-mono: "Times New Roman", Times, "Site CJK Sans",
+    "Noto Sans CJK SC", serif;
+}
+
+body, button, input, select, textarea {
+  font-family: var(--font-body);
+}
+
+/* Chinese content headings are serif; all their Latin glyphs come from Times. */
+h1, h2, h3, h4, h5, h6,
+.brand-name, .brand-mark, .level-name,
+.step-title, .ev-title {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+}
+
+/* A more balanced composition for Songti strokes over moving photography. */
+.hero h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -.022em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.hero h1 em { font-weight: 700; }
+.story-intro h2, .signal-intro h2, .section-head h2,
+.start-copy h2 { letter-spacing: -.015em; line-height: 1.24; }
+
+/* Technical labels and codes are Times, while Chinese stays Source Han Sans. */
+code, .mono, .gauge-num, .gauge-max, .signal-center strong,
+.hero-edition, .story-overline, .signal-meta {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .hero h1 { letter-spacing: -.028em; line-height: 1.23; }
+}
+
+/*
+ * Responsive type scale, tuned for a film-like introduction followed by a
+ * practical, information-dense diagnosis. There are deliberately only a few
+ * recurring size roles instead of independent per-card font-size guesses.
+ */
+:root {
+  --type-hero: clamp(52px, 5.55vw, 88px);
+  --type-display: clamp(38px, 4.15vw, 60px);
+  --type-section: clamp(29px, 2.65vw, 38px);
+  --type-card: clamp(20px, 1.8vw, 24px);
+  --type-body-lg: 17px;
+  --type-body: 15.5px;
+  --type-report: 14.5px;
+  --type-label: 12.5px;
+  --type-micro: 11.5px;
+  --type-score: clamp(70px, 7.5vw, 94px);
+}
+
+body { font-size: var(--type-body); line-height: 1.76; }
+.brand-name { font-size: 17px; line-height: 1.35; }
+.brand-sub { font-size: var(--type-micro); }
+.topnav a { font-size: 14px; }
+
+/* 01 / Cinematic hero: intentionally the strongest type on the site. */
+.hero h1 {
+  font-size: var(--type-hero);
+  line-height: 1.17;
+  letter-spacing: -.025em;
+}
+.hero .lede {
+  font-size: var(--type-body-lg);
+  line-height: 1.86;
+  max-width: 38em;
+}
+.hero .eyebrow, .hero-trust { font-size: var(--type-label); }
+.hero-actions .btn, .start-actions .btn { font-size: 15px; }
+.hero-edition, .hero-figure, .hero-scroll { font-size: var(--type-micro); }
+
+/* 02 / Storytelling: section, feature and scenario levels share a rhythm. */
+.story-intro h2, .signal-copy h2 { font-size: var(--type-display); }
+.story-intro > p, .signal-description { font-size: var(--type-body); line-height: 1.9; }
+.method h3 { font-size: var(--type-card); line-height: 1.38; }
+.method p { font-size: var(--type-body); line-height: 1.75; }
+.method .num { font-size: 50px; }
+.start-copy h2, .section-head h2 { font-size: var(--type-section); }
+.start-copy p, .section-head p { font-size: var(--type-body); line-height: 1.75; }
+.signal-active-main span { font-size: 23px; }
+.signal-active-main strong { font-size: 24px; }
+.story-overline, .signal-active-label, .signal-type,
+.signal-meta { font-size: var(--type-label); }
+
+/* 03 / Questionnaire: long-form official content must remain effortless to read. */
+.field > span, .group-block > legend { font-size: 14px; }
+.field input, .field select, select, input[type="text"], input[type="number"] {
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 44px;
+}
+.acc > summary { font-size: 15px; line-height: 1.5; }
+.item-title { font-size: 15.5px; line-height: 1.65; }
+.opt { font-size: 14.5px; line-height: 1.7; }
+.field .unit, .acc > summary .count, .item-no,
+.item-meta { font-size: var(--type-micro); }
+.group-block > legend .hint-inline { font-size: 12px; }
+
+/* 04 / Report: clear outcomes, restrained supporting evidence. */
+.gauge-num { font-size: var(--type-score); line-height: 1; }
+.gauge-label, .gauge-max, .level-chip { font-size: var(--type-label); }
+.level-name { font-size: clamp(23px, 2.35vw, 30px); }
+.out-head h3 { font-size: clamp(24px, 2.3vw, 32px); }
+.diag h4 { font-size: 16px; line-height: 1.65; }
+.step-title { font-size: 16px; line-height: 1.55; }
+.ev-title { font-size: 14.5px; line-height: 1.5; }
+.ev-card { font-size: var(--type-report); line-height: 1.72; }
+.donot-item strong, .policy-card h4 { font-size: 15px; }
+.diag, .path-card, .policy-card, .donot { line-height: 1.73; }
+
+@media (max-width: 800px) {
+  .hero h1 { font-size: clamp(40px, 7vw, 62px); }
+  .hero .lede { font-size: 16px; }
+  .story-intro h2, .signal-copy h2 { font-size: clamp(34px, 5.6vw, 44px); }
+  .start-copy h2, .section-head h2 { font-size: 30px; }
+  .method h3 { font-size: 22px; }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --type-body: 15px;
+    --type-body-lg: 15px;
+    --type-report: 14px;
+    --type-label: 12px;
+  }
+  .brand-name { font-size: 14px; }
+  .hero h1 {
+    font-size: clamp(36px, 9.4vw, 44px);
+    line-height: 1.2;
+    letter-spacing: -.03em;
+  }
+  .hero .lede { font-size: 15px; line-height: 1.82; }
+  .hero .eyebrow { font-size: 11px; }
+  .hero-trust { font-size: 11.5px; }
+  .hero-actions .btn { font-size: 15px; }
+  .story-intro h2, .signal-copy h2 { font-size: 34px; line-height: 1.23; }
+  .start-copy h2, .section-head h2 { font-size: 28px; }
+  .method h3 { font-size: 21px; }
+  .method p, .story-intro > p, .signal-description { font-size: 15px; }
+  .signal-active-main span { font-size: 21px; }
+  .gauge-num { font-size: 68px; }
+  .level-name { font-size: 24px; }
+  .out-head h3 { font-size: 25px; }
+  .diag h4, .step-title { font-size: 15.5px; }
+  .ev-title { font-size: 14px; }
+}

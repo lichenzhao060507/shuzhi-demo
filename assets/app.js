@@ -92,6 +92,17 @@
     requestAnimationFrame(frame);
   }
 
+  /* Long jumps are task navigation, not a multi-screen cinematic pan. */
+  function navigateTo(node) {
+    if (!node) return;
+    const distance = Math.abs(node.getBoundingClientRect().top);
+    const longJump = distance > window.innerHeight * 1.4;
+    node.scrollIntoView({
+      behavior: state.reduced || longJump ? "instant" : "smooth",
+      block: "start",
+    });
+  }
+
   /* ------------------------------------------------------------ 滚动进入 */
 
   let revealObserver = null;
@@ -869,7 +880,7 @@
 
     if (!entries.length) {
       host.appendChild(el("div", { class: "placeholder" }, [
-        el("b", { text: "未发现结构性瓶颈" }),
+        el("b", { text: "按当前评测规则，未识别出主要瓶颈" }),
         "按官方采集项与场景等级，未命中投入无效模式，也未发现约束性场景断层。",
       ]));
       return;
@@ -949,7 +960,7 @@
 
     if (!steps.length) {
       host.appendChild(el("div", { class: "placeholder" }, [
-        el("b", { text: "本次没有需要推进的改造步骤" }),
+        el("b", { text: "按当前评测结果，暂未列出优先改造项" }),
         result.mode === "live"
           ? "在当前画像下，四个等级已全部达标，或已无可补的场景缺口。"
           : "在当前起点上，官方口径下没有必须先做的动作。",
@@ -1003,12 +1014,12 @@
       }
 
       if (step.symptom || step.root_cause) {
-        const cause = el("div", { class: "step-cause" }, [el("b", { text: "归因" })]);
+        const cause = el("div", { class: "step-cause" }, [el("b", { text: "为什么建议这一步" })]);
         if (step.symptom) cause.appendChild(el("p", { class: "cause-line" }, [
-          el("span", { class: "cause-tag", text: "症状" }), step.symptom,
+          el("span", { class: "cause-tag", text: "现状" }), step.symptom,
         ]));
         if (step.root_cause) cause.appendChild(el("p", { class: "cause-line" }, [
-          el("span", { class: "cause-tag", text: "根因" }), step.root_cause,
+          el("span", { class: "cause-tag", text: "原因" }), step.root_cause,
         ]));
         if (step.basis) cause.appendChild(el("p", { class: "cause-line" }, [
           el("span", { class: "cause-tag", text: "依据" }), step.basis,
@@ -1171,12 +1182,12 @@
     const doNot = result.do_not || [];
     const box = el("div", { class: "donot reveal" });
     box.appendChild(el("div", { class: "donot-head" }, [
-      el("h4", { text: "不建议做清单（命中投入无效模式）" }),
+      el("h4", { text: "现阶段不建议做的事" }),
       el("span", { class: "form-status", style: "margin-left:auto", text: `${doNot.length} 条` }),
     ]));
 
     if (!doNot.length) {
-      box.appendChild(el("p", { class: "form-status", text: "未命中四类典型投入无效模式。" }));
+      box.appendChild(el("p", { class: "form-status", text: "当前没有触发工具设置的四类风险提醒。" }));
     } else {
       doNot.forEach((item) => {
         const row = el("div", { class: "donot-item" });
@@ -1350,7 +1361,7 @@
       $("#panel-input").hidden = false;
       $("#progress").hidden = false;
       updateProgress();
-      $("#panel-input").scrollIntoView({ behavior: state.reduced ? "auto" : "smooth", block: "start" });
+      navigateTo($("#panel-input"));
     };
 
     $("#btn-demo").addEventListener("click", runDemo);
@@ -1382,7 +1393,7 @@
       applyProfile(sample.profile);
       status.textContent = "";
       renderResult({ ...sample.result, mode: "sample" });
-      document.getElementById("result-head").scrollIntoView({ behavior: state.reduced ? "auto" : "smooth", block: "start" });
+      navigateTo(document.getElementById("result-head"));
     } catch (error) {
       status.className = "form-status error";
       status.textContent = "载入失败：" + error.message;
@@ -1409,7 +1420,7 @@
         const result = evaluateLive(profile);
         status.textContent = "";
         renderResult(result);
-        document.getElementById("result-head").scrollIntoView({ behavior: state.reduced ? "auto" : "smooth", block: "start" });
+        navigateTo(document.getElementById("result-head"));
       } catch (error) {
         status.className = "form-status error";
         status.textContent = "计算失败：" + error.message;
