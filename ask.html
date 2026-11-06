@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智能问答 · 数改指导智能体</title>
+<meta name="description" content="按官方判据回答等级、缺口、改造顺序、投入产出与政策依据；每条回答都带可回查的依据。">
+<meta name="theme-color" content="#071a2b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231a1916'/%3E%3Ctext x='16' y='23' font-size='17' text-anchor='middle' fill='%23fbfaf7' font-family='serif'%3E数%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css?v=20261107">
+<link rel="stylesheet" href="assets/redesign.css?v=20261107">
+<link rel="stylesheet" href="assets/motion-hero.css?v=20261107">
+<link rel="stylesheet" href="assets/spectacle.css?v=20261107">
+<link rel="stylesheet" href="assets/typography.css?v=20261107">
+<link rel="stylesheet" href="assets/continuity.css?v=20261107">
+<link rel="stylesheet" href="assets/hero-editorial.css?v=20261107">
+<link rel="stylesheet" href="assets/subpage.css?v=20261107">
+<link rel="stylesheet" href="assets/ai-card.css?v=20261107">
+<link rel="stylesheet" href="assets/agent/agent.css?v=20261107">
+</head>
+<body class="page-ask">
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html" aria-label="数改指导智能体 首页">
+      <span class="brand-mark" aria-hidden="true">数</span>
+      <span class="brand-text">
+        <span class="brand-name">数改指导智能体</span>
+        <span class="brand-sub">工信厅企业〔2024〕56 号</span>
+      </span>
+    </a>
+    <nav class="topnav" aria-label="页面导航">
+      <a href="index.html#method">评测方法</a>
+      <a href="index.html#scenario-atlas">应用场景</a>
+      <a href="highlights.html">工具亮点</a>
+      <a href="report.html">示例报告</a>
+      <a href="ask.html" class="is-current" aria-current="page">智能问答</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="ask-shell">
+
+  <section class="subpage-bar ask-bar">
+    <div class="subpage-bar-head">
+      <a class="subpage-back" href="report.html">
+        <span aria-hidden="true">←</span> 返回报告
+      </a>
+      <h1 class="subpage-title">智能问答 <small>ASK THE ADVISOR</small></h1>
+      <div class="ask-fixture">
+        <span>示例企业</span>
+        <select id="ask-fixture" aria-label="选择示例企业"></select>
+      </div>
+    </div>
+    <p class="subpage-lede">
+      回答里的每个数字都来自确定性评测结果，涉及政策的句子会挂原文。检索不到就直说，不编。
+    </p>
+  </section>
+
+  <div class="ask-grid">
+
+    <section class="ask-chat" aria-label="对话">
+      <div id="ask-flow" class="ask-flow" role="log" aria-live="polite"></div>
+
+      <div class="ask-suggest">
+        <button type="button" data-q="我现在是什么等级？">我现在是什么等级？</button>
+        <button type="button" data-q="还差多少分到 3 级？">还差多少分到 3 级？</button>
+        <button type="button" data-q="先改哪一步？">先改哪一步？</button>
+        <button type="button" data-q="有哪些政策依据？">有哪些政策依据？</button>
+      </div>
+
+      <form id="ask-form" class="ask-composer" autocomplete="off">
+        <label class="sr-only" for="ask-input">输入问题</label>
+        <input id="ask-input" type="text" placeholder="例：设备管理这个场景现在几级？先补它还是先补质量？" />
+        <button type="submit" class="ask-send">发送</button>
+      </form>
+    </section>
+
+    <aside class="ask-side" aria-label="运行信息">
+      <section class="panel">
+        <h2 class="panel__title">调用链 <span id="trace-status" class="panel__hint"></span></h2>
+        <ol id="trace-list" class="trace">
+          <li class="trace__empty">发一条问题，这里会显示这一轮走了哪几步。</li>
+        </ol>
+        <p class="panel__foot">识别意图 → 编排工具 → 执行 → 组织回答 → 自检数字与引用 →（必要时）兜底</p>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel__title">可观测</h2>
+        <dl id="metrics" class="metrics"></dl>
+        <ul id="event-list" class="events"></ul>
+        <button id="export-log" type="button" class="panel__btn">导出会话日志（JSONL）</button>
+      </section>
+
+      <section class="panel panel--note">
+        <h2 class="panel__title">这套问答的边界</h2>
+        <ul class="limits">
+          <li>数字：只读评测结果，模板不产生新数字</li>
+          <li>政策/案例：检索不到就明说，不编条文</li>
+          <li>意图：规则匹配为主，问法太偏会走兜底</li>
+          <li>账号：演示级，仅标识会话，不做权限隔离</li>
+        </ul>
+      </section>
+    </aside>
+
+  </div>
+</main>
+
+<div id="ask-gate" class="gate" hidden>
+  <form id="gate-form" class="gate__card">
+    <h2>进入智能问答</h2>
+    <p class="gate__note">演示级账号：仅用于标识会话与统计，不做权限隔离。访问码 <code>shuzhi-2026</code></p>
+    <label class="gate__field">称呼
+      <input id="gate-name" type="text" placeholder="例：王工 / 李评委" autocomplete="off">
+    </label>
+    <label class="gate__field">访问码
+      <input id="gate-code" type="password" placeholder="shuzhi-2026">
+    </label>
+    <p id="gate-error" class="gate__error" role="alert"></p>
+    <button type="submit" class="gate__btn">进入</button>
+  </form>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <p><strong>判据基准</strong>：工业和信息化部办公厅《中小企业数字化水平评测指标（2024 年版）》（工信厅企业〔2024〕56 号）附件（一）（二）。</p>
+    <div class="footer-meta">
+      <span>演示用途</span>
+      <span>示例企业为合成样本</span>
+      <span>浏览器端计算</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/provenance.js?v=20261107"></script>
+<script src="assets/agent/kb.js?v=20261107"></script>
+<script src="assets/agent/tools.js?v=20261107"></script>
+<script src="assets/agent/graph.js?v=20261107"></script>
+<script src="assets/agent/agent.js?v=20261107"></script>
+<script src="assets/agent/ui.js?v=20261107"></script>
+</body>
+</html>
