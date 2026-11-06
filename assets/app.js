@@ -9,6 +9,8 @@
 
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+  // 可选元素绑定：页面缺某个节点时静默跳过（主页与报告页共用本脚本）
+  const on = (sel, ev, fn) => { const node = typeof sel === "string" ? $(sel) : sel; if (node) node.addEventListener(ev, fn); return node; };
 
   const state = {
     criteria: null,
@@ -95,11 +97,15 @@
   /* Long jumps are task navigation, not a multi-screen cinematic pan. */
   function navigateTo(node) {
     if (!node) return;
-    const distance = Math.abs(node.getBoundingClientRect().top);
+    // 用绝对位移滚动：scrollIntoView 在 overflow-x:clip 的文档里会提前停住
+    const header = document.getElementById("topbar");
+    const offset = (header ? header.offsetHeight : 0) + 20;
+    const top = Math.max(0, node.getBoundingClientRect().top + window.scrollY - offset);
+    const distance = Math.abs(top - window.scrollY);
     const longJump = distance > window.innerHeight * 1.4;
-    node.scrollIntoView({
-      behavior: state.reduced || longJump ? "instant" : "smooth",
-      block: "start",
+    window.scrollTo({
+      top,
+      behavior: state.reduced || longJump ? "auto" : "smooth",
     });
   }
 
@@ -162,16 +168,21 @@
       }
     } catch (error) {
       setStatus("判据载入失败", "error");
-      $("#form-status").textContent = "加载判据失败：" + error.message;
+      const formStatus = $("#form-status");
+      if (formStatus) formStatus.textContent = "加载判据失败：" + error.message;
       return;
     }
 
     setStatus("前端实时计算", "online");
-    $("#footer-mode").textContent = "前端实时计算 · 无后端依赖";
+    const footerMode = $("#footer-mode");
+    if (footerMode) footerMode.textContent = "浏览器端计算 · 无后端依赖";
 
-    renderForm();
-    renderFixturePicker();
-    bindForm();
+    if ($("#profile-form")) {
+      renderForm();
+      renderFixturePicker();
+      bindForm();
+      bindRoute();
+    }
     observeReveals(document);
     // 首屏改为摄影图，不再载入示例样本
   }
@@ -1334,12 +1345,12 @@
   }
 
   function bindForm() {
-    $("#profile-form").addEventListener("submit", (event) => {
+    on("#profile-form", "submit", (event) => {
       event.preventDefault();
       runLive();
     });
 
-    $("#btn-reset").addEventListener("click", () => {
+    on("#btn-reset", "click", () => {
       $("#profile-form").reset();
       $$('input[data-role="scenario"]').forEach((input) => { input.checked = false; });
       $$(".level-desc").forEach((node) => {
@@ -1364,17 +1375,39 @@
       navigateTo($("#panel-input"));
     };
 
-    $("#btn-demo").addEventListener("click", runDemo);
-    $("#btn-demo-2").addEventListener("click", runDemo);
-    $("#btn-fill").addEventListener("click", openForm);
-    $("#btn-fill-2").addEventListener("click", openForm);
+    on("#btn-demo", "click", runDemo);
+    on("#btn-demo-2", "click", runDemo);
+    on("#btn-fill", "click", openForm);
+    on("#btn-fill-2", "click", openForm);
 
-    $("#btn-load-fixture").addEventListener("click", () => {
+    on("#btn-load-fixture", "click", () => {
       const name = $("#fixture-select").value;
       if (name) loadFixture(name);
     });
 
 
+  }
+
+
+  /* 报告页路由：?mode=demo 直接出示例报告，?mode=form 打开填写表单 */
+  function bindRoute() {
+    const mode = new URLSearchParams(window.location.search).get("mode");
+    if (mode === "form") {
+      const panel = $("#panel-input");
+      if (!panel) return;
+      panel.hidden = false;
+      const progress = $("#progress");
+      if (progress) progress.hidden = false;
+      updateProgress();
+      navigateTo(panel);
+    } else if (mode === "demo") {
+      const preferred = state.fixtures.find((f) => f.name.startsWith("ap1")) || state.fixtures[0];
+      const select = $("#fixture-select");
+      if (!preferred) return;
+      if (select) select.value = preferred.name;
+      // 报告页打开即示例报告，页面本身就在报告顶部，不再自动滚动
+      loadFixture(preferred.name, { navigate: false });
+    }
   }
 
   async function fetchSample(name) {
@@ -1384,7 +1417,7 @@
     return sample;
   }
 
-  async function loadFixture(name) {
+  async function loadFixture(name, options = {}) {
     const status = $("#form-status");
     status.className = "form-status";
     status.textContent = "正在载入示例企业…";
@@ -1393,7 +1426,7 @@
       applyProfile(sample.profile);
       status.textContent = "";
       renderResult({ ...sample.result, mode: "sample" });
-      navigateTo(document.getElementById("result-head"));
+      if (options.navigate !== false) navigateTo(document.getElementById("result-head"));
     } catch (error) {
       status.className = "form-status error";
       status.textContent = "载入失败：" + error.message;

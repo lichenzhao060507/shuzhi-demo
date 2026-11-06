@@ -23,7 +23,8 @@
     const probe = window.scrollY + height * .45;
     const start = absoluteTop(chapters[0].node);
     const end = absoluteTop(chapters[2].node) + chapters[2].node.offsetHeight;
-    const visible = window.scrollY > hero.offsetHeight * .48 && probe < end + height * .15;
+    // 首屏与高亮画廊只属于“了解工具”之前，章节索引从评测方法才开始出现
+    const visible = probe > absoluteTop(chapters[0].node) - height * .18 && probe < end + height * .15;
     rail.classList.toggle("is-visible", visible);
     rail.style.setProperty("--journey-progress", `${(clamp((probe - start) / Math.max(1, end - start)) * 100).toFixed(1)}%`);
 

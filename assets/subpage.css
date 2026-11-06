@@ -1,0 +1,221 @@
+/* ============================================================================
+   子页面（report.html / highlights.html）· 页面级样式
+   只放「主页没有」的东西：固定顶栏下方的留白、页面标题条、报告工具条。
+   页面内容本身的样式全部沿用 styles / redesign / spectacle 等既有层。
+   ========================================================================== */
+
+/* ---------- 固定顶栏留白 ---------- */
+.page-report main,
+.page-highlights main {
+  padding-top: clamp(96px, 11vh, 128px);
+}
+
+/* ---------- 子页面标题条 ---------- */
+.report-bar,
+.subpage-bar {
+  max-width: var(--measure);
+  margin: 0 auto clamp(18px, 2.4vw, 30px);
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.report-bar-head,
+.subpage-bar-head {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.subpage-lede {
+  flex: 1 1 100%;
+  margin: 0;
+  max-width: 62ch;
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--ink-3);
+}
+
+.report-back,
+.subpage-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-3);
+  text-decoration: none;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: color var(--t-fast, .2s) ease, border-color var(--t-fast, .2s) ease;
+}
+
+.report-back:hover,
+.report-back:focus-visible,
+.subpage-back:hover,
+.subpage-back:focus-visible {
+  color: var(--ink-1);
+  border-color: var(--ink-3);
+  text-decoration: none;
+}
+
+.report-back span,
+.subpage-back span {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.report-title,
+.subpage-title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 600;
+  letter-spacing: -.01em;
+  color: var(--ink-1);
+}
+
+.report-title small,
+.subpage-title small {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ---------- 报告工具条 ---------- */
+.report-bar .fixture-bar {
+  flex: 1 1 520px;
+  margin-bottom: 0;
+}
+
+.report-bar .form-status {
+  flex: 1 1 100%;
+  font-size: 12px;
+  min-height: 0;
+}
+
+/* 等级缺口一句话：别在“还/差”之间断行 */
+.page-report .gap-line span {
+  white-space: nowrap;
+}
+
+.page-report .result-head {
+  margin-top: 0;
+  scroll-margin-top: 110px;
+}
+
+.page-report .result-layout {
+  padding-bottom: clamp(40px, 6vw, 72px);
+}
+
+.page-report .toc {
+  top: 108px;
+}
+
+/* ---------- 亮点页 ---------- */
+/* 画廊自己占满一屏：标题条压在画廊上方的空白带里，不额外占滚动高度 */
+.page-highlights main {
+  padding-top: 96px;
+  padding-bottom: clamp(40px, 6vw, 80px);
+}
+
+.page-highlights .subpage-bar {
+  position: relative;
+  z-index: 3;
+  margin-bottom: -132px;
+  pointer-events: none;
+}
+
+.page-highlights .subpage-bar a,
+.page-highlights .subpage-bar .subpage-title {
+  pointer-events: auto;
+}
+
+/* 导语压在左侧空白带里，别撞上居中偏右的首帧配图 */
+.page-highlights .subpage-lede {
+  max-width: 360px;
+}
+
+.page-highlights .highlight-gallery.is-live .highlight-stage {
+  top: 96px;
+  height: calc(100vh - 96px);
+  height: calc(100svh - 96px);
+}
+
+/* 舞台比整屏少了顶栏那 96px，图和文案要一起收一点，否则标题会被图压住 */
+.page-highlights .highlight-gallery.is-live .highlight-frame {
+  padding-top: clamp(72px, 9vh, 104px);
+  padding-bottom: clamp(100px, 13vh, 140px);
+}
+
+.page-highlights .highlight-gallery.is-live .highlight-visual {
+  width: min(80vw, calc(100svh - 430px));
+}
+
+/* 窄屏标题别留一个孤零零的“表。” */
+.page-highlights .highlight-copy h3 {
+  text-wrap: balance;
+}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 720px) {
+  .page-report main {
+    padding-top: 84px;
+  }
+
+  .page-highlights main {
+    padding-top: 76px;
+  }
+
+  .page-highlights .subpage-bar {
+    margin-bottom: -96px;
+  }
+
+  .page-highlights .subpage-lede {
+    display: none;
+  }
+
+  .page-highlights .highlight-gallery.is-live .highlight-stage {
+    top: 76px;
+    height: calc(100vh - 76px);
+    height: calc(100svh - 76px);
+  }
+
+  .report-bar,
+  .subpage-bar {
+    gap: 12px;
+  }
+
+  .report-bar .fixture-bar {
+    flex: 1 1 100%;
+  }
+
+  .report-back,
+  .subpage-back {
+    padding: 6px 12px 6px 9px;
+    font-size: 12px;
+  }
+
+  .report-title,
+  .subpage-title {
+    font-size: 18px;
+  }
+
+  .subpage-lede {
+    font-size: 13px;
+    line-height: 1.75;
+  }
+
+  .page-report .result-head {
+    border-radius: 14px 14px 0 0;
+    padding: 32px 20px 24px;
+  }
+}

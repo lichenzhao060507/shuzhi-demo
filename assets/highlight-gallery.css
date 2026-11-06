@@ -1,0 +1,315 @@
+/* ============================================================
+ * Apple 风格滚动翻页（highlight gallery）
+ * —— 仿 apple.com/iphone-18-pro 的 sticky 高亮区：
+ *    外层提供滚动轨道，内层视口吸顶，帧随滚动进度交叉淡化，
+ *    底部圆点指示当前高亮。
+ * 依赖：assets/highlight-gallery.js 初始化后追加 is-live 类才启用
+ * 吸顶布局；无 JS 或访客偏好减少动态时，自动退化为纵向排列。
+ * ============================================================ */
+
+.highlight-gallery {
+  position: relative;
+  background: #071a2b;
+  isolation: isolate;
+}
+
+/* ---------- 兜底布局：未启用脚本 / prefers-reduced-motion ---------- */
+.highlight-stage {
+  display: grid;
+  gap: clamp(72px, 10vh, 140px);
+  padding: clamp(72px, 10vh, 140px) clamp(20px, 6vw, 96px);
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.highlight-frame {
+  display: grid;
+  gap: clamp(18px, 3vw, 36px);
+}
+
+.highlight-visual {
+  position: relative;
+  margin: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #10283d;
+  box-shadow: 0 30px 80px -40px rgba(4, 14, 24, 0.9);
+  border: 1px solid rgba(116, 154, 181, 0.16);
+}
+
+.highlight-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.highlight-copy .highlight-kicker {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: #f4bb75;
+  font-weight: 600;
+}
+
+.highlight-copy h3 {
+  margin: 0 0 12px;
+  font-size: clamp(26px, 3.4vw, 44px);
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+  color: #f5f0e6;
+  font-weight: 600;
+}
+
+.highlight-copy p {
+  margin: 0;
+  max-width: 56ch;
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.75;
+  color: rgba(214, 226, 234, 0.78);
+}
+
+.highlight-copy .highlight-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.highlight-facts li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(214, 226, 234, 0.62);
+}
+
+.highlight-facts strong {
+  font-size: 20px;
+  color: #f4bb75;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- 翻页圆点：兜底状态下隐藏，由 JS 启用 ---------- */
+.highlight-dots {
+  display: none;
+}
+
+.highlight-progress {
+  display: none;
+}
+
+/* ============================================================
+ * 启用态（JS 就绪且未偏好减少动态）
+ * ============================================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .highlight-gallery.is-live {
+    /* 4 帧：每帧约一屏滚动行程，外加首尾缓冲 */
+    height: 440vh;
+  }
+
+  .highlight-gallery.is-live .highlight-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 0;
+    max-width: none;
+    margin: 0;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .highlight-gallery.is-live .highlight-frame {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    align-items: center;
+    justify-items: center;
+    padding: clamp(84px, 12vh, 128px) clamp(20px, 6vw, 72px) clamp(120px, 18vh, 168px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    will-change: opacity, transform;
+  }
+
+  .highlight-gallery.is-live .highlight-frame.is-active {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .highlight-gallery.is-live .highlight-frame.is-adjacent {
+    visibility: visible;
+  }
+
+  .highlight-gallery.is-live .highlight-visual {
+    width: min(88vw, calc(100vh - clamp(300px, 44vh, 400px)));
+    max-width: 1080px;
+    transform-origin: center;
+    will-change: transform;
+  }
+
+  .highlight-gallery.is-live .highlight-visual img {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .highlight-gallery.is-live .highlight-copy {
+    text-align: center;
+    display: grid;
+    justify-items: center;
+  }
+
+  .highlight-gallery.is-live .highlight-copy p {
+    max-width: 62ch;
+  }
+
+  /* ---------- 圆点指示器（仿 Apple highlight dots） ---------- */
+  .highlight-gallery.is-live .highlight-dots {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(52px, 9vh, 84px);
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: clamp(14px, 2vw, 22px);
+    z-index: 4;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .highlight-gallery.is-live .highlight-dots.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .highlight-gallery.is-live .highlight-dot {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .highlight-gallery.is-live .highlight-dot::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(214, 226, 234, 0.34);
+    transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+      background-color 0.45s ease, box-shadow 0.45s ease;
+    transform: scale(1);
+  }
+
+  .highlight-gallery.is-live .highlight-dot:hover::before {
+    background: rgba(214, 226, 234, 0.6);
+  }
+
+  .highlight-gallery.is-live .highlight-dot.is-active::before {
+    width: 22px;
+    height: 7px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #f9c98b, #f4bb75);
+    box-shadow: 0 0 14px rgba(244, 187, 117, 0.45);
+  }
+
+  .highlight-gallery.is-live .highlight-dot-label {
+    position: absolute;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%) translateY(6px);
+    white-space: nowrap;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: rgba(214, 226, 234, 0.85);
+    opacity: 0;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    pointer-events: none;
+  }
+
+  .highlight-gallery.is-live .highlight-dot.is-active .highlight-dot-label,
+  .highlight-gallery.is-live .highlight-dot:hover .highlight-dot-label {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .highlight-gallery.is-live .highlight-dot:focus-visible {
+    outline: 2px solid #f4bb75;
+    outline-offset: 4px;
+    border-radius: 99px;
+  }
+
+  /* ---------- 顶部细进度线 ---------- */
+  .highlight-gallery.is-live .highlight-progress {
+    position: absolute;
+    display: block;
+    left: clamp(20px, 6vw, 72px);
+    right: clamp(20px, 6vw, 72px);
+    bottom: clamp(28px, 5vh, 44px);
+    height: 1px;
+    background: rgba(116, 154, 181, 0.22);
+    z-index: 4;
+  }
+
+  .highlight-gallery.is-live .highlight-progress > i {
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    transform: scaleX(0);
+    background: linear-gradient(90deg, #10283d, #f4bb75);
+  }
+
+  /* ---------- 章节进入提示（首帧滚动提示） ---------- */
+  .highlight-gallery.is-live .highlight-frame.is-first .highlight-copy::after {
+    content: "";
+    display: block;
+    width: 1px;
+    height: 34px;
+    margin: 22px auto 0;
+    background: linear-gradient(180deg, rgba(244, 187, 117, 0.75), rgba(244, 187, 117, 0));
+    animation: highlight-cue 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes highlight-cue {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+/* ---------- 窄屏：图上文下、缩小留白 ---------- */
+@media (max-width: 720px) {
+  .highlight-gallery.is-live .highlight-frame {
+    padding: 76px 18px 128px;
+  }
+
+  .highlight-gallery.is-live .highlight-visual {
+    width: 100%;
+  }
+
+  .highlight-gallery.is-live .highlight-copy h3 {
+    font-size: clamp(22px, 6vw, 30px);
+  }
+
+  .highlight-gallery.is-live .highlight-dot-label {
+    display: none;
+  }
+}

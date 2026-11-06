@@ -12,9 +12,16 @@
 (() => {
   const hero = document.getElementById("top");
   const canvas = document.getElementById("hero-cinema");
-  const button = document.getElementById("cinema-toggle");
-  const buttonLabel = document.getElementById("cinema-toggle-label");
-  if (!hero || !canvas || !button || !buttonLabel) return;
+  // 首屏动效常驻：不再提供暂停开关；缺失按钮节点时用占位对象兜住旧逻辑
+  const noopToggle = {
+    hidden: false, disabled: false,
+    setAttribute() {}, getAttribute() { return "false"; },
+    addEventListener() {}, classList: { add() {}, remove() {} },
+  };
+  const noopLabel = { textContent: "" };
+  const button = document.getElementById("cinema-toggle") || noopToggle;
+  const buttonLabel = document.getElementById("cinema-toggle-label") || noopLabel;
+  if (!hero || !canvas) return;
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
   const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -361,7 +368,6 @@
     buttonLabel.textContent = paused ? "继续动态场景" : "暂停动态场景";
     hero.dataset.cinema = paused ? "paused" : (context2d ? "canvas2d" : "webgl");
   }
-  button.addEventListener("click",() => setPaused(!paused));
   hero.addEventListener("pointermove",event => {
     if (!finePointer.matches || !initialized) return;
     const rect = hero.getBoundingClientRect();
