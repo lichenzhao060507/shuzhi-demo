@@ -368,10 +368,13 @@
               return [];
             }
           };
-          const [policies, cases] = await Promise.all([searchSafe("policy"), searchSafe("cases")]);
+          const [policies, cases, publicCases] = await Promise.all([
+            searchSafe("policy"), searchSafe("cases"), searchSafe("public_cases"),
+          ]);
           const citations = [
             ...policies.map(({ doc }) => ({ kind: "政策", ref: doc.id, title: doc.title, quote: doc.text, doc: doc.issuer || "政策库", url: doc.url || "" })),
             ...cases.map(({ doc }) => ({ kind: "案例", ref: doc.id, title: doc.title, quote: doc.text, doc: doc.industry || "案例库", url: "" })),
+            ...publicCases.map(({ doc }) => ({ kind: "公开案例复现", ref: doc.id, title: doc.title, quote: doc.text, doc: doc.industry || "公开案例复现", url: doc.url || "" })),
           ];
           c.answer = {
             intent: "fallback",

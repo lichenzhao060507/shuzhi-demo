@@ -31,6 +31,7 @@
   const FILES = {
     policy: "data/agent/policy.json",
     cases: "data/agent/cases.json",
+    public_cases: "data/agent/public_cases.json",
     papers: "data/agent/papers.json",
   };
 

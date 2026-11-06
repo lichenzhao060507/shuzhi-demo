@@ -260,20 +260,27 @@
     case: {
       label: "检索案例库",
       async run({ query }) {
-        const rows = await window.AdvisorKB.search("cases", query, { k: 3 });
-        if (!rows.length) return { blocks: [{ type: "p", text: "案例库里没有匹配到相似企业。" }], citations: [] };
+        const [enterpriseRows, publicRows] = await Promise.all([
+          window.AdvisorKB.search("cases", query, { k: 3 }),
+          window.AdvisorKB.search("public_cases", query, { k: 3 }),
+        ]);
+        const rows = [...enterpriseRows, ...publicRows]
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+        if (!rows.length) return { blocks: [{ type: "p", text: "案例库里没有匹配到相似做法。" }], citations: [] };
         return {
           blocks: [{
             type: "list",
             items: rows.map(({ doc }) => ({
-              title: `${doc.id}｜${doc.title}`,
-              meta: [doc.industry, doc.company].filter(Boolean).join(" · "),
+              title: `${doc.id}｜${doc.title}${doc.verification_class === "public_case_reproduction" ? "｜公开案例复现" : ""}`,
+              meta: [doc.industry, doc.company, doc.source].filter(Boolean).join(" · "),
               body: doc.text,
             })),
           }],
           citations: rows.map(({ doc }) => ({
-            kind: "案例", ref: doc.id, title: doc.title, quote: doc.text,
-            doc: doc.industry || "案例库", url: "",
+            kind: doc.verification_class === "public_case_reproduction" ? "公开案例复现" : "案例",
+            ref: doc.id, title: doc.title, quote: doc.text,
+            doc: doc.industry || "案例库", url: doc.url || "",
           })),
         };
       },

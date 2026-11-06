@@ -25,12 +25,22 @@
   gap: 8px;
   font-size: 12px;
   color: var(--ink-3, #8f8c84);
+  flex-wrap: nowrap;
 }
 
+.ask-fixture > span { white-space: nowrap; }
+.ask-fixture .ask-mini { white-space: nowrap; }
+
 .ask-fixture select {
-  max-width: 260px;
+  flex: none;
+  max-width: 190px;
+  min-width: 0;
   font-size: 12.5px;
   padding: 6px 10px;
+}
+
+@media (max-width: 1180px) {
+  .ask-fixture { flex: 1 1 100%; margin-left: 0; flex-wrap: wrap; }
 }
 
 .ask-grid {
