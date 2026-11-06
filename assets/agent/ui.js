@@ -18,6 +18,7 @@
     events: [],
     busy: false,
     startedAt: 0,
+    lastOtel: null,
   };
 
   function el(tag, attrs, children) {
@@ -217,6 +218,7 @@
       thinking.remove();
       push("bot", out.answer || { blocks: [{ type: "p", text: "我没有组织出答案。" }] });
       renderTrace(out.trace);
+      state.lastOtel = out.otel;
       record({ q: text, intent: out.intent, tools: out.tools, ms: out.ms, citations: (out.answer && out.answer.citations.length) || 0, fallback: Boolean(out.answer && out.answer.fallback), verified: out.verified });
     } catch (error) {
       thinking.remove();
@@ -285,14 +287,22 @@
     });
   }
 
-  function exportLog() {
-    const blob = new Blob([state.events.map((e) => JSON.stringify(e)).join("\n")], { type: "application/x-ndjson" });
+  function download(filename, content, type) {
+    const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
-    const a = el("a", { href: url, download: `ask-log-${Date.now()}.jsonl` });
+    const a = el("a", { href: url, download: filename });
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function exportLog() {
+    download(
+      `ask-log-${Date.now()}.jsonl`,
+      state.events.map((e) => JSON.stringify(e)).join("\n"),
+      "application/x-ndjson",
+    );
   }
 
   /* ---------------- 启动 ---------------- */
@@ -312,6 +322,14 @@
       await loadSample(event.target.value, option ? option.textContent.split("（")[0] : "");
     });
     $("#export-log").addEventListener("click", exportLog);
+    $("#export-trace").addEventListener("click", () => {
+      if (!state.lastOtel) {
+        $("#trace-status").textContent = "还没有可导出的 trace";
+        setTimeout(() => { $("#trace-status").textContent = ""; }, 2000);
+        return;
+      }
+      download(`ask-trace-${Date.now()}.json`, JSON.stringify(state.lastOtel, null, 2), "application/json");
+    });
     $$(".ask-suggest button").forEach((btn) => {
       btn.addEventListener("click", () => send(btn.dataset.q || btn.textContent));
     });

@@ -175,18 +175,102 @@
       .filter((block) => block.type !== "note")
       .map((block) => JSON.stringify(block))
       .join(" ");
-    const numeric = checked.match(/\d+\.\d{2}/g) || [];
-    const haystack = JSON.stringify(ctx.result || {});
-    const missing = [...new Set(numeric)].filter((n) => !haystack.includes(n));
+    const numeric = [...new Set(checked.match(/\d+\.\d{2}/g) || [])].map(Number);
+    // 结果里出现过的数，以及两数相减能得到数（如 60 − 51.95 = 8.05）都算可追溯
+    const pool = (JSON.stringify(ctx.result || {}).match(/-?\d+(\.\d+)?/g) || []).map(Number);
+    const near = (a, b) => Math.abs(a - b) < 0.005;
+    const missing = numeric.filter((n) => {
+      if (pool.some((v) => near(v, n))) return false;
+      for (let i = 0; i < pool.length; i += 1) {
+        for (let j = i + 1; j < pool.length; j += 1) {
+          if (near(pool[i] - pool[j], n) || near(pool[j] - pool[i], n)) return false;
+        }
+      }
+      return true;
+    });
     return {
       ok: missing.length === 0,
-      missing,
+      missing: missing.map((n) => n.toFixed(2)),
       cited: answer.citations.length > 0,
-      reason: missing.length ? "数字未在评测结果中找到：" + missing.join("、") : "ok",
+      reason: missing.length ? "数字未在评测结果中找到：" + missing.map((n) => n.toFixed(2)).join("、") : "ok",
     };
   }
 
   /* ---------------- 会话 ---------------- */
+
+  /* ---------------- OpenTelemetry 结构（gen_ai.* 语义约定子集） ---------------- */
+
+  const NODE_OP = {
+    understand: "agent.intent",
+    plan: "agent.plan",
+    execute: "execute_tool",
+    compose: "agent.compose",
+    verify: "agent.verify",
+    fallback: "agent.fallback",
+  };
+
+  function hexId(len) {
+    let out = "";
+    while (out.length < len) out += Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, "0");
+    return out.slice(0, len);
+  }
+
+  function toNanos(ms) {
+    return Math.max(0, Math.round(ms * 1e6));
+  }
+
+  /* 把一次问答转成 OTel span 树：根 span 是 invoke_agent，子 span 是各节点 */
+  function buildOtel(trace, startedAt, meta) {
+    const traceId = hexId(32);
+    const rootId = hexId(16);
+    const spans = [];
+    const base = startedAt;
+
+    spans.push({
+      traceId, spanId: rootId, parentSpanId: null,
+      name: "invoke_agent",
+      kind: "INTERNAL",
+      startTimeUnixNano: toNanos(base),
+      endTimeUnixNano: toNanos(base + trace.reduce((sum, n) => sum + (n.ms || 0), 0)),
+      attributes: {
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.agent.name": "shuzhi-advisor",
+        "gen_ai.agent.version": "1.0.0",
+        "shuzhi.profile": meta.profileName || "",
+        "shuzhi.intent": meta.intent || "",
+        "shuzhi.tools": (meta.tools || []).join(","),
+        "shuzhi.citations": meta.citations || 0,
+        "shuzhi.verified": Boolean(meta.verified),
+      },
+      status: { code: meta.verified && meta.verified.ok ? "OK" : "ERROR" },
+    });
+
+    let cursor = base;
+    trace.forEach((node) => {
+      const start = cursor;
+      cursor += node.ms || 0;
+      spans.push({
+        traceId, spanId: hexId(16), parentSpanId: rootId,
+        name: NODE_OP[node.id] || node.id,
+        kind: "INTERNAL",
+        startTimeUnixNano: toNanos(start),
+        endTimeUnixNano: toNanos(start + (node.ms || 0)),
+        attributes: {
+          "gen_ai.operation.name": NODE_OP[node.id] || node.id,
+          "shuzhi.node.label": node.label,
+          "shuzhi.node.status": node.status,
+        },
+        status: { code: node.status === "error" ? "ERROR" : "OK" },
+      });
+    });
+
+    return {
+      resourceSpans: [{
+        resource: { attributes: [{ key: "service.name", value: { stringValue: "shuzhi-advisor-web" } }] },
+        scopeSpans: [{ scope: { name: "shuzhi.agent", version: "1.0.0" }, spans }],
+      }],
+    };
+  }
 
   function createSession(profileName) {
     return {
@@ -253,10 +337,14 @@
         when: (c) => !c.answer || (c.intent === "unknown" && !(c.answer && c.answer.citations.length)),
         optional: true,
         run: async (c) => {
-          const [policies, cases] = await Promise.all([
-            window.AdvisorKB.search("policy", text, { k: 2, minScore: 0.8 }).catch(() => []),
-            window.AdvisorKB.search("cases", text, { k: 2, minScore: 0.8 }).catch(() => []),
-          ]);
+          const searchSafe = async (kind) => {
+            try {
+              return await window.AdvisorKB.search(kind, text, { k: 2, minScore: 0.8 });
+            } catch (error) {
+              return [];
+            }
+          };
+          const [policies, cases] = await Promise.all([searchSafe("policy"), searchSafe("cases")]);
           const citations = [
             ...policies.map(({ doc }) => ({ kind: "政策", ref: doc.id, title: doc.title, quote: doc.text, doc: doc.issuer || "政策库", url: doc.url || "" })),
             ...cases.map(({ doc }) => ({ kind: "案例", ref: doc.id, title: doc.title, quote: doc.text, doc: doc.industry || "案例库", url: "" })),
@@ -297,13 +385,22 @@
     };
     session.lastQuery = text;
 
+    const answer = state.answer;
+    const tools = (state.outputs || []).map((o) => o.tool);
     return {
-      answer: state.answer,
+      answer,
       trace,
       ms,
       intent: state.intent,
       verified: state.verifyResult,
-      tools: (state.outputs || []).map((o) => o.tool),
+      tools,
+      otel: buildOtel(trace, started, {
+        profileName: session.profileName,
+        intent: state.intent,
+        tools,
+        citations: (answer && answer.citations.length) || 0,
+        verified: state.verifyResult,
+      }),
     };
   }
 
