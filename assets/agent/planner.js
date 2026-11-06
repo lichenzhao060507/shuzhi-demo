@@ -8,7 +8,7 @@
 
   const VALID_TOOLS = new Set([
     "score", "gaps", "pathway", "step", "roi", "do_not",
-    "diagnosis", "scenario", "policy", "case", "paper",
+    "diagnosis", "scenario", "evidence", "policy", "case", "paper",
   ]);
 
   /* ---------- 规则版：把意图翻成工具调用 ---------- */
@@ -38,6 +38,12 @@
           .find(([w]) => String(text).includes(w));
         const id = m ? "S" + m[1] : alias ? alias[1] : last.scenario || null;
         return [{ tool: "scenario", args: id ? { id } : {} }];
+      }
+      case "evidence": {
+        const m = String(text).match(/采集项\s*(\d+)/) || String(text).match(/S(\d{2})/i)
+          || String(text).match(/CASE-(\d{3})/i);
+        const ref = !m ? "" : (/采集项/.test(m[0]) ? "采集项 " + m[1] : (/^S/i.test(m[0]) ? "S" + m[1] : "CASE-" + m[1]));
+        return [{ tool: "evidence", args: ref ? { ref } : {} }];
       }
       case "policy": return [{ tool: "policy", args: { query: text } }];
       case "case": return [{ tool: "case", args: { query: text } }];
@@ -100,6 +106,7 @@
     [/第\s*[一二两三四五六七八九十\d]+\s*步|花多少钱/, "step"],
     [/投入|产出|roi|回本/i, "roi"],
     [/不建议|别做|白花/, "do_not"],
+    [/原文|出处/, "evidence"],
     [/S\d{2}|场景|设备管理|质量管理/, "scenario"],
     [/政策|补贴|资金/, "policy"],
     [/案例|同行/, "case"],

@@ -128,7 +128,11 @@
   /* ---------------- 数据 ---------------- */
 
   async function loadFixtures() {
-    const listing = await fetch("data/fixtures.json").then((r) => r.json());
+    const [listing, criteria] = await Promise.all([
+      fetch("data/fixtures.json").then((r) => r.json()),
+      fetch("data/criteria.json").then((r) => r.json()).catch(() => null),
+    ]);
+    state.criteria = criteria;
     const fixtures = listing.fixtures || [];
     const select = $("#ask-fixture");
     select.textContent = "";
@@ -383,6 +387,7 @@
       const out = await window.AdvisorAgent.ask(text, {
         result: state.sample.result,
         sample: state.sample,
+        criteria: state.criteria,
         session: state.session,
         options: { planner: currentPlanner(), llm: loadLLM() },
       }, (event) => {

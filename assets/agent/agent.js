@@ -16,6 +16,8 @@
     { intent: "do_not", re: /不建议|不要做|别做|白花|避坑|无效投入|没必要/ },
     { intent: "roi", re: /投入|产出|回本|回收期|值不值|划算|多少钱|预算|费用|roi/i },
     { intent: "gaps", re: /差多少|还差|差几|缺什么|差距|门槛|够不够/ },
+    // 问某条依据的原文：编号 + 原文/出处/依据，必须排在场景之前（否则「S08 的原文」会被判成场景）
+    { intent: "evidence", re: /(原文|出处).*(采集项|场景|案例|S\d{2}|CASE)|(采集项\s*\d+|S\d{2}|CASE-\d+).*(原文|出处)/i },
     // 场景问句要先于「几级」判断：问「设备管理现在几级」时，主语是场景不是总分
     { intent: "scenario", re: /S\d{2}|场景|设备管理|质量管理|排产|计划排程|能耗|仓储|物流|采购|营销|售后|安全生产|财务|人力|协同办公|产品设计|工艺设计/ },
     { intent: "score", re: /多少分|几分|分数|得分|什么等级|几级|评级|我的分/ },
@@ -78,6 +80,16 @@
         const id = parseScenario(text) || (session.last && session.last.scenario);
         return [{ tool: "scenario", args: id ? { id } : {} }];
       }
+      case "evidence": {
+        const m = text.match(/采集项\s*(\d+)/) || text.match(/S(\d{2})/i) || text.match(/CASE-(\d{3})/i);
+        let ref = "";
+        if (m) {
+          if (/采集项/.test(m[0])) ref = "采集项 " + m[1];
+          else if (/S\d/i.test(m[0])) ref = "S" + m[1];
+          else ref = "CASE-" + m[1];
+        }
+        return [{ tool: "evidence", args: ref ? { ref } : {} }];
+      }
       case "policy": return [{ tool: "policy", args: { query: text } }];
       case "case": return [{ tool: "case", args: { query: text } }];
       case "paper": return [{ tool: "paper", args: { query: text } }];
@@ -108,6 +120,7 @@
     do_not: "这几件事现在做会白花钱：",
     diagnosis: "卡点在这儿：",
     scenario: "这个场景的情况：",
+    evidence: "这些是原文与出处：",
     policy: "在政策库里检索到：",
     case: "案例库里有相似的做法：",
     paper: "论文库里相关的条目：",
@@ -348,6 +361,7 @@
             const out = await window.AdvisorTools.run(call.tool, {
               result: c.result,
               sample: c.sample,
+              criteria: c.criteria,
               query: (call.args && call.args.query) || text,
             }, call.args);
             outputs.push(out);

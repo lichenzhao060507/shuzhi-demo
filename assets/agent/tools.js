@@ -36,6 +36,72 @@
     return rows.find((row) => row.level === current + 1) || null;
   }
 
+  /* ---------- 依据解析：全站唯一的溯源入口 ----------
+   * 回答里的「看依据」、MCP 的 get_evidence、报告页的抽屉都从这一个池子取，
+   * 避免同一个编号在不同地方给出不同原文。
+   */
+  function evidencePool(result) {
+    const pool = [];
+    (result.diagnosis || []).forEach((entry) => pool.push(...(entry.evidence_refs || [])));
+    (result.pathway || []).forEach((step) => pool.push(...(step.evidence_refs || [])));
+    (result.do_not || []).forEach((row) => pool.push(...(row.evidence_refs || [])));
+    return pool;
+  }
+
+  function collectEvidence(result, options) {
+    const opts = options || {};
+    const needle = String(opts.needle || "").trim();
+    const source = opts.refs || evidencePool(result);
+    const seen = new Set();
+    const out = [];
+    source.forEach((ref) => {
+      const key = [ref.kind, ref.ref, ref.title, ref.quote].join("|");
+      if (seen.has(key)) return;
+      seen.add(key);
+      const hay = [ref.kind, ref.ref, ref.title, ref.quote, ref.doc].join(" ");
+      if (needle && !hay.includes(needle)) return;
+      out.push(citFromRef(ref));
+    });
+    return out;
+  }
+
+  /* 判据层兜底：回答里的依据没有命中时，直接查 15 采集项 / 16 场景的官方原文 */
+  function evidenceFromCriteria(criteria, needle) {
+    const out = [];
+    const itemMatch = needle.match(/采集项\s*(\d+)/);
+    if (itemMatch) {
+      const id = Number(itemMatch[1]);
+      const row = (criteria.indicators || []).find((it) => Number(it.id) === id);
+      if (row) {
+        out.push({
+          kind: "采集项",
+          ref: `采集项 ${row.id}`,
+          title: `${row.primary}/${row.secondary}/${row.item} · ${row.title}`,
+          quote: [].concat(row.options || []).join(" / "),
+          doc: "工信厅企业〔2024〕56 号 附件（一）数字化基础、管理及成效评测表",
+          url: "official/中小企业数字化水平评测指标（2024年版）.pdf",
+        });
+      }
+    }
+    const scMatch = needle.match(/S(\d{2})/i);
+    if (scMatch) {
+      const id = "S" + scMatch[1];
+      const row = (criteria.scenarios || []).find((sc) => sc.id.toUpperCase() === id.toUpperCase());
+      if (row) {
+        const levels = row.levels || {};
+        out.push({
+          kind: "场景",
+          ref: `${row.id}「${row.name}」`,
+          title: row.constraint ? "约束性业务场景" : "业务场景",
+          quote: Object.keys(levels).sort().map((lv) => `${lv} 级：${levels[lv]}`).join("；"),
+          doc: "工信厅企业〔2024〕56 号 附件（二）数字化经营应用场景等级判定表",
+          url: "official/中小企业数字化水平评测指标（2024年版）.pdf",
+        });
+      }
+    }
+    return out;
+  }
+
   function unmetScenarios(result, level) {
     const out = [];
     (result.scenario_results || []).forEach((sc) => {
@@ -111,7 +177,7 @@
               body: step.symptom || "",
             })),
           }],
-          citations: (steps[0] && steps[0].evidence_refs ? steps[0].evidence_refs.map(citFromRef) : []),
+          citations: collectEvidence(result, { refs: (steps[0] && steps[0].evidence_refs) || [] }),
         };
       },
     },
@@ -140,7 +206,7 @@
             expected.length ? { type: "list", items: expected.map((text) => ({ title: text })) } : null,
             step.acceptance ? { type: "note", text: `验收口径：${step.acceptance}` } : null,
           ].filter(Boolean),
-          citations: (step.evidence_refs || []).map(citFromRef),
+          citations: collectEvidence(result, { refs: step.evidence_refs || [] }),
         };
       },
     },
@@ -180,11 +246,14 @@
           blocks: [{
             type: "list",
             items: rows.map((row) => ({
-              title: row.pattern || row.title || "不建议做",
-              body: row.reason || row.detail || "",
+              title: `${row.pattern_id || ""} ${row.name || row.pattern || "不建议做"}`.trim(),
+              meta: row.basis_kind || "",
+              body: row.basis || row.reason || "",
             })),
           }],
-          citations: [],
+          citations: collectEvidence(result, {
+            refs: rows.flatMap((row) => row.evidence_refs || []),
+          }),
         };
       },
     },
@@ -230,7 +299,36 @@
             ] },
             entry.evidence ? { type: "p", text: entry.evidence } : null,
           ].filter(Boolean),
-          citations: (entry.evidence_refs || []).map(citFromRef),
+          citations: collectEvidence(result, { refs: entry.evidence_refs || [] }),
+        };
+      },
+    },
+
+    evidence: {
+      label: "按编号取原文依据",
+      run({ result, criteria, query }, args) {
+        const needle = String((args && args.ref) || query || "").trim();
+        let rows = collectEvidence(result, { needle });
+        // 该画像里没有这条依据时，回落到判据层原文（15 采集项 / 16 场景）
+        if (!rows.length && criteria) rows = evidenceFromCriteria(criteria, needle);
+        if (!rows.length) {
+          return {
+            blocks: [{ type: "p", text: `没有找到与「${needle || "该编号"}」对应的依据原文。` }],
+            citations: [],
+          };
+        }
+        return {
+          blocks: [{
+            type: "list",
+            items: rows.slice(0, 5).map((ref) => ({
+              title: `${ref.kind}｜${ref.ref}${ref.title ? " · " + ref.title : ""}`,
+              body: ref.quote,
+            })),
+          }, {
+            type: "note",
+            text: "「采集项 / 场景」为官方附件逐字转写，「判据」为本项目构造；两者在标签上分开。",
+          }],
+          citations: rows,
         };
       },
     },
