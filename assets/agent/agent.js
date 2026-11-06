@@ -18,7 +18,7 @@
     { intent: "gaps", re: /差多少|还差|差几|缺什么|差距|门槛|够不够/ },
     // 场景问句要先于「几级」判断：问「设备管理现在几级」时，主语是场景不是总分
     { intent: "scenario", re: /S\d{2}|场景|设备管理|质量管理|排产|计划排程|能耗|仓储|物流|采购|营销|售后|安全生产|财务|人力|协同办公|产品设计|工艺设计/ },
-    { intent: "score", re: /多少分|几分|得分|什么等级|几级|评级|我的分/ },
+    { intent: "score", re: /多少分|几分|分数|得分|什么等级|几级|评级|我的分/ },
     { intent: "pathway", re: /先做|先改|改哪|做什么|干什么|第一步|顺序|路线|怎么改|改造路径|从哪(开始|下手)|优先/ },
     { intent: "diagnosis", re: /诊断|问题在哪|瓶颈|卡在|短板/ },
     { intent: "policy", re: /政策|补贴|补助|文件|文号|申报|试点|验收|支持/ },
@@ -293,9 +293,20 @@
         id: "understand", label: "识别意图",
         run: (c) => {
           const { intent, match } = matchIntent(text);
-          c.intent = intent;
+          let resolved = intent;
+          let inherited = false;
+          // 省略式追问沿用上一轮意图：那…呢 / 这个呢 / 广东的呢（短句 + 呢）
+          const isFollowUp = /^(那|这|它|还有|再)/.test(text)
+            || (text.length <= 12 && /呢[？?]?$/.test(text));
+          if (resolved === "unknown" && isFollowUp
+            && session.last && session.last.intent && session.last.intent !== "unknown") {
+            resolved = session.last.intent;
+            inherited = true;
+          }
+          c.intent = resolved;
           c.match = match;
-          return { intent };
+          c.inherited = inherited;
+          return { intent: resolved, inherited };
         },
       },
       {
