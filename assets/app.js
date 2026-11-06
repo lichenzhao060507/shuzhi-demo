@@ -883,6 +883,36 @@
     });
   }
 
+  /* 一条结论的溯源包：依据清单 + 七项字段（供 ai-card / provenance 使用） */
+  function buildProvenance(entry, result) {
+    const refs = entry.evidence_refs || [];
+    const official = refs.filter((ref) =>
+      ref.kind === "采集项" || ref.kind === "场景" || /官方/.test(ref.doc || "")).length;
+    const items = (result.item_results || []).filter((it) =>
+      (entry.hit_items || []).includes(it.id));
+    const scenarios = (result.scenario_results || []).filter((sc) =>
+      (entry.hit_scenarios || []).includes(sc.id));
+    const raw = [
+      ...items.map((it) => `采集项 ${it.id}「${it.title}」= ${(it.selected || []).join(" / ")}`),
+      ...scenarios.map((sc) => `场景 ${sc.id}「${sc.name}」= 当前 ${sc.level} 级`),
+    ].join("；");
+    const basis = (entry.evidence || "").split("。判据：")[1] || entry.evidence || "";
+    return {
+      title: entry.bottleneck,
+      subtitle: `${refs.length} 条依据 · 官方原文 ${official} 条 · 本项目构造 ${refs.length - official} 条`,
+      refs,
+      metaRows: [
+        { label: "数据名称", value: entry.bottleneck },
+        { label: "数据来源", value: `工信厅企业〔2024〕56 号 附件（一）（二）；本项目构造判据 ${refs.length - official} 条` },
+        { label: "更新时间", value: (result.meta && result.meta.generated_at) || "—" },
+        { label: "数据质量", value: `依据 ${refs.length} 条，其中官方原文 ${official} 条；官方口径逐字转写，可用 tools/check_official_doc.py 回查` },
+        { label: "原始数据", value: raw || "—" },
+        { label: "处理方法", value: basis || entry.basis_kind || "—" },
+        { label: "判据版本", value: "《中小企业数字化水平评测指标（2024 年版）》工信厅企业〔2024〕56 号" },
+      ],
+    };
+  }
+
   function renderDiagnosis(result) {
     const host = $("#out-diagnosis");
     host.textContent = "";
@@ -899,6 +929,15 @@
 
     const tones = ["clay", "brass", "accent", "accent"];
     entries.forEach((entry, index) => {
+      entry._tone = entry._pattern ? "clay" : tones[index % tones.length];
+      entry._provenance = buildProvenance(entry, result);
+
+      // 优先用可信依据卡；compo 未加载时退回原卡片，保证报告不空
+      if (window.AdvisorUI && window.AdvisorUI.createAiCard) {
+        host.appendChild(window.AdvisorUI.createAiCard(entry, { delay: index * 60 }));
+        return;
+      }
+
       const card = el("article", {
         class: "diag reveal",
         style: `--d:${index * 60}ms`,

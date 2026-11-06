@@ -1,0 +1,386 @@
+/* ============================================================================
+   可信依据卡（ai-card）与依据抽屉（provenance）
+   —— 供报告页复用：结论 / 为什么 / 影响 / 依据强度 / 可执行动作
+   视觉沿用 styles.css 的 token 与 .diag 的左侧色条语言。
+   ========================================================================== */
+
+.ai-card {
+  position: relative;
+  border: 1px solid var(--line, #282c36);
+  border-radius: var(--r-3, 10px);
+  background: var(--card, #171a21);
+  padding: 18px 20px 14px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.ai-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--accent, #7fb3e8);
+}
+
+.ai-card[data-tone="clay"]::before { background: var(--clay, #e27e6c); }
+.ai-card[data-tone="brass"]::before { background: var(--brass, #eda85a); }
+
+.ai-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+}
+
+.ai-card__kind {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  letter-spacing: .05em;
+  padding: 2px 7px;
+  border-radius: var(--r-1, 3px);
+  background: var(--paper-2, #1f232c);
+  color: var(--ink-3, #8f8c84);
+  white-space: nowrap;
+}
+
+.ai-card[data-tone="clay"] .ai-card__kind { background: var(--clay-wash, #241312); color: var(--clay, #e27e6c); }
+.ai-card[data-tone="brass"] .ai-card__kind { background: var(--brass-wash, #1f1709); color: var(--brass, #eda85a); }
+
+/* 依据强度：不写置信度，只写能数出来的东西 */
+.ai-card__strength {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--ink-3, #8f8c84);
+  white-space: nowrap;
+}
+
+.ai-card__strength b {
+  color: var(--ink-2, #b6b3ab);
+  font-weight: 600;
+}
+
+.ai-card__strength .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--line-3, #464c5a);
+}
+
+.ai-card__strength .dot.is-official { background: var(--accent, #7fb3e8); }
+.ai-card__strength .dot.is-own { background: var(--brass, #eda85a); }
+
+.ai-card__conclusion {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--ink, #f4f1ea);
+}
+
+.ai-card__quote {
+  margin: 10px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line-2, #343945);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink-2, #b6b3ab);
+}
+
+.ai-card__reasons {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.ai-card__reasons li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink-2, #b6b3ab);
+}
+
+.ai-card__reasons .idx {
+  color: var(--ink-4, #6b6861);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  padding-top: 1px;
+}
+
+.ai-card__reasons b {
+  color: var(--ink, #f4f1ea);
+  font-weight: 500;
+}
+
+.ai-card__facts {
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px dashed var(--line, #282c36);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-size: 12px;
+  color: var(--ink-3, #8f8c84);
+}
+
+.ai-card__facts b {
+  color: var(--ink-2, #b6b3ab);
+  font-weight: 600;
+}
+
+.ai-card__actions {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-card__btn {
+  appearance: none;
+  border: 1px solid var(--line-2, #343945);
+  background: transparent;
+  color: var(--ink-2, #b6b3ab);
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color var(--t-fast, 140ms) ease, color var(--t-fast, 140ms) ease,
+    background var(--t-fast, 140ms) ease;
+}
+
+.ai-card__btn:hover,
+.ai-card__btn:focus-visible {
+  color: var(--ink, #f4f1ea);
+  border-color: var(--ink-3, #8f8c84);
+}
+
+.ai-card__btn--primary {
+  border-color: var(--brass-line, #46331a);
+  background: var(--brass-wash, #1f1709);
+  color: var(--brass, #eda85a);
+}
+
+.ai-card__btn--primary:hover,
+.ai-card__btn--primary:focus-visible {
+  border-color: var(--brass, #eda85a);
+  color: var(--brass, #eda85a);
+}
+
+/* ============================================================
+   依据抽屉（provenance）
+   ============================================================ */
+
+.provenance {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: end center;
+  background: rgba(4, 10, 16, .62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-mid, 260ms) ease;
+}
+
+.provenance.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.provenance__panel {
+  width: min(760px, 100%);
+  max-height: min(84vh, 900px);
+  display: flex;
+  flex-direction: column;
+  background: #0d2134;
+  border: 1px solid #2b4a62;
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, .45);
+  transform: translateY(24px);
+  transition: transform var(--t-mid, 260ms) ease;
+}
+
+.provenance.is-open .provenance__panel {
+  transform: none;
+}
+
+.provenance__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid #22405a;
+}
+
+.provenance__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #eef4f8;
+}
+
+.provenance__sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #8aa3b6;
+}
+
+.provenance__close {
+  margin-left: auto;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #2b4a62;
+  background: transparent;
+  color: #9fb6c6;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.provenance__close:hover { color: #fff; border-color: #4a6f8c; }
+
+.provenance__body {
+  overflow: auto;
+  padding: 16px 22px 8px;
+  overscroll-behavior: contain;
+}
+
+.provenance__ref {
+  border: 1px solid #23405a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: #0f2739;
+}
+
+.provenance__ref-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.provenance__kind {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: .04em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #17334a;
+  color: #93b4cb;
+}
+
+.provenance__kind[data-kind="采集项"] { background: #12293d; color: #8fb6d6; }
+.provenance__kind[data-kind="场景"] { background: #1d2c1c; color: #9fc48c; }
+.provenance__kind[data-kind="判据"] { background: #2a2113; color: #e0b071; }
+.provenance__kind[data-kind="案例"] { background: #241d2e; color: #b9a5d0; }
+
+.provenance__ref-title {
+  font-size: 13px;
+  color: #e6eef4;
+}
+
+.provenance__quote {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: #c6d6e2;
+  border-left: 2px solid #2b4a62;
+  padding-left: 10px;
+}
+
+.provenance__note {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #8aa3b6;
+}
+
+.provenance__doc {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: #7f97a9;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.provenance__doc a {
+  color: #9dc9f2;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(157, 201, 242, .35);
+}
+
+/* 七项溯源 */
+.provenance__meta {
+  margin: 4px 0 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #0b1c2a;
+  border: 1px solid #1e3a52;
+  display: grid;
+  gap: 7px;
+}
+
+.provenance__meta-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.provenance__meta-row dt { color: #7f97a9; }
+.provenance__meta-row dd { margin: 0; color: #c6d6e2; }
+
+.provenance__foot {
+  padding: 10px 22px 16px;
+  border-top: 1px solid #22405a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  color: #7f97a9;
+}
+
+.provenance__foot button {
+  appearance: none;
+  border: 1px solid #2b4a62;
+  background: transparent;
+  color: #9fb6c6;
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.provenance__foot button:hover { color: #fff; border-color: #4a6f8c; }
+
+@media (max-width: 720px) {
+  .ai-card { padding: 16px 16px 12px; }
+  .ai-card__strength { margin-left: 0; width: 100%; }
+  .provenance__panel { max-height: 88vh; }
+  .provenance__head, .provenance__body, .provenance__foot { padding-left: 16px; padding-right: 16px; }
+  .provenance__meta-row { grid-template-columns: 72px minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .provenance, .provenance__panel { transition: none; }
+}
