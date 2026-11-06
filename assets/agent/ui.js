@@ -41,9 +41,10 @@
 
   /* ---------------- 账号门（演示级） ---------------- */
 
+  /* 账号只用来标识会话，持久化到 localStorage，刷新/重开不必重输访问码 */
   function currentUser() {
     try {
-      const raw = sessionStorage.getItem(STORE_KEY);
+      const raw = localStorage.getItem(STORE_KEY) || sessionStorage.getItem(STORE_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch (error) { return null; }
   }
@@ -61,7 +62,8 @@
         return;
       }
       state.user = { name, at: new Date().toISOString() };
-      sessionStorage.setItem(STORE_KEY, JSON.stringify(state.user));
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state.user)); } catch (e) { /* 隐私模式忽略 */ }
+      try { sessionStorage.setItem(STORE_KEY, JSON.stringify(state.user)); } catch (e) { /* 同上 */ }
       gate.hidden = true;
       start();
     });
@@ -99,11 +101,25 @@
   function resetChat() {
     const flow = $("#ask-flow");
     flow.textContent = "";
+    const label = state.sample._label || "合成样本";
+    const memory = window.AdvisorMemory ? window.AdvisorMemory.load(localStorage, label) : null;
+
+    // 二次访问：把上次的上下文接回来（只复原可核对的事实，不复述聊天原文）
+    if (memory && state.session) {
+      state.session.last = {
+        intent: memory.lastIntent || null,
+        tool: memory.lastTool || (memory.lastIntent === "step" ? "step" : null),
+        step: memory.lastStep != null ? memory.lastStep : null,
+        scenario: memory.lastScenario || null,
+      };
+    }
+
+    const lines = [memory
+      ? `又见面了。${window.AdvisorMemory.summarize(memory)}`
+      : `已载入示例企业「${label}」。可以问我：现在几级、差多少分、先改哪一步、有哪些政策依据。`];
+
     push("bot", {
-      blocks: [{
-        type: "p",
-        text: `已载入示例企业「${state.sample._label || "合成样本"}」。可以问我：现在几级、差多少分、先改哪一步、有哪些政策依据。`,
-      }],
+      blocks: lines.map((text) => ({ type: "p", text })),
       citations: [],
       suggested: [
         "我现在是什么等级？",
@@ -112,6 +128,35 @@
         "有哪些政策依据？",
       ],
     });
+    renderMemory();
+  }
+
+  function renderMemory() {
+    const host = $("#memory-text");
+    if (!host) return;
+    const label = state.sample && (state.sample._label || "合成样本");
+    const rec = window.AdvisorMemory && label ? window.AdvisorMemory.load(localStorage, label) : null;
+    if (!rec || !rec.turns || !rec.turns.length) {
+      host.textContent = "还没有跨会话记忆。聊过一轮后，下次打开会先复述上次问到哪。";
+      return;
+    }
+    const when = new Date(rec.updatedAt || Date.now());
+    host.textContent = `${window.AdvisorMemory.summarize(rec)}（${rec.turns.length} 条记录 · ${when.toLocaleString("zh-CN", { hour12: false })}）`;
+  }
+
+  function remember(out, text) {
+    if (!window.AdvisorMemory || !state.session) return;
+    const label = state.sample && (state.sample._label || "合成样本");
+    const level = (state.sample.result.evaluation || {}).level;
+    window.AdvisorMemory.save(localStorage, label, {
+      q: text,
+      intent: out.intent,
+      tool: state.session.last ? state.session.last.tool : null,
+      step: state.session.last ? state.session.last.step : null,
+      scenario: state.session.last ? state.session.last.scenario : null,
+      level: level == null ? null : level,
+    });
+    renderMemory();
   }
 
   function push(role, payload) {
@@ -125,6 +170,9 @@
       (payload.blocks || []).forEach((block) => bubble.appendChild(renderBlock(block)));
       if (payload.citations && payload.citations.length) {
         bubble.appendChild(renderCitations(payload));
+      }
+      if (payload.claims && payload.claims.total) {
+        bubble.appendChild(renderClaims(payload.claims));
       }
       if (payload.fallback) {
         bubble.appendChild(el("p", { class: "bubble__flag", text: "这条是兜底回答：只给原文，不下结论。" }));
@@ -177,6 +225,40 @@
     return el("p", { class: "bubble__p", text: String(block.text || "") });
   }
 
+  /* 句子级核验：每句都得有字段来源或引用，点开能逐句看判定 */
+  function renderClaims(claims) {
+    const ok = claims.verified === claims.total;
+    const wrap = el("div", { class: "claims" });
+    const btn = el("button", {
+      class: "claims__btn",
+      type: "button",
+      "data-ok": ok ? "true" : "false",
+      text: ok
+        ? `已核验 ${claims.verified}/${claims.total} 句`
+        : `已核验 ${claims.verified}/${claims.total} 句 · ${claims.total - claims.verified} 句待补依据`,
+    });
+    btn.addEventListener("click", () => {
+      window.AdvisorProvenance.open({
+        title: "句子级核验",
+        subtitle: `共 ${claims.total} 句：字段 ${claims.items.filter((i) => i.basis === "字段").length} · 引用 ${claims.items.filter((i) => i.basis === "引用").length} · 未核验 ${claims.items.filter((i) => i.basis === "未核验").length}`,
+        refs: claims.items
+          .filter((item) => item.basis !== "说明")
+          .map((item) => ({
+            kind: item.basis,
+            ref: "",
+            title: item.text,
+            quote: item.badNumbers && item.badNumbers.length
+              ? "数字未在评测结果中找到：" + item.badNumbers.map((n) => n.toFixed(2)).join("、")
+              : "",
+            doc: "",
+            url: "",
+          })),
+      });
+    });
+    wrap.appendChild(btn);
+    return wrap;
+  }
+
   function renderCitations(payload) {
     const count = payload.citations.length;
     const wrap = el("div", { class: "cites" });
@@ -216,8 +298,9 @@
       });
 
       thinking.remove();
-      push("bot", out.answer || { blocks: [{ type: "p", text: "我没有组织出答案。" }] });
+      push("bot", { ...(out.answer || { blocks: [{ type: "p", text: "我没有组织出答案。" }] }), claims: out.claims });
       renderTrace(out.trace);
+      remember(out, text);
       state.lastOtel = out.otel;
       record({ q: text, intent: out.intent, tools: out.tools, ms: out.ms, citations: (out.answer && out.answer.citations.length) || 0, fallback: Boolean(out.answer && out.answer.fallback), verified: out.verified });
     } catch (error) {
@@ -320,6 +403,12 @@
     $("#ask-fixture").addEventListener("change", async (event) => {
       const option = event.target.selectedOptions[0];
       await loadSample(event.target.value, option ? option.textContent.split("（")[0] : "");
+    });
+    $("#memory-clear").addEventListener("click", () => {
+      const label = state.sample && (state.sample._label || "合成样本");
+      window.AdvisorMemory.clear(localStorage, label);
+      renderMemory();
+      $("#memory-text").textContent = "已清空这家企业的记忆。";
     });
     $("#export-log").addEventListener("click", exportLog);
     $("#export-trace").addEventListener("click", () => {

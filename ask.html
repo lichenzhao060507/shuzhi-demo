@@ -94,6 +94,12 @@
         <button id="export-trace" type="button" class="panel__btn">导出最近一轮 trace（OTel）</button>
       </section>
 
+      <section class="panel">
+        <h2 class="panel__title">记忆 <span class="panel__hint">本机浏览器</span></h2>
+        <p id="memory-text" class="panel__foot">还没有跨会话记忆。聊过一轮后，下次打开会先复述上次问到哪。</p>
+        <button id="memory-clear" type="button" class="panel__btn">清空记忆</button>
+      </section>
+
       <section class="panel panel--note">
         <h2 class="panel__title">这套问答的边界</h2>
         <ul class="limits">
@@ -135,6 +141,8 @@
 </footer>
 
 <script src="assets/provenance.js?v=20261107"></script>
+<script src="assets/agent/memory.js?v=20261107"></script>
+<script src="assets/agent/claims.js?v=20261107"></script>
 <script src="assets/agent/kb.js?v=20261107"></script>
 <script src="assets/agent/tools.js?v=20261107"></script>
 <script src="assets/agent/graph.js?v=20261107"></script>

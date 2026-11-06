@@ -119,11 +119,12 @@
     const { intent, outputs, session } = ctx;
     const blocks = [];
     if (OPENERS[intent] && intent !== "greeting") {
-      blocks.push({ type: "p", text: OPENERS[intent] });
+      blocks.push({ type: "p", text: OPENERS[intent], src: "opener" });
     }
     const citations = [];
     outputs.forEach((out) => {
-      (out.blocks || []).forEach((block) => blocks.push(block));
+      // 打上来源标记，句级核验据此判断「字段 / 引用 / 说明」
+      (out.blocks || []).forEach((block) => blocks.push({ ...block, src: "tool:" + out.tool }));
       (out.citations || []).forEach((cit) => citations.push(cit));
     });
 
@@ -352,10 +353,10 @@
           c.answer = {
             intent: "fallback",
             blocks: [
-              { type: "p", text: citations.length
+              { type: "p", src: "opener", text: citations.length
                 ? "这个问题不在我的判据范围内，先把库里相关的原文给你，别当成结论用："
                 : "这个问题超出我的判据范围：我只回答本企业的等级、缺口、改造顺序、投入产出与政策案例。要不要换个问法？" },
-              ...(citations.length ? [{ type: "list", items: citations.slice(0, 4).map((cit) => ({
+              ...(citations.length ? [{ type: "list", src: "tool:policy", items: citations.slice(0, 4).map((cit) => ({
                 title: `${cit.kind}｜${cit.title}`, body: cit.quote,
               })) }] : []),
             ],
@@ -387,8 +388,10 @@
 
     const answer = state.answer;
     const tools = (state.outputs || []).map((o) => o.tool);
+    const claims = window.AdvisorClaims ? window.AdvisorClaims.verify(answer, state.result) : null;
     return {
       answer,
+      claims,
       trace,
       ms,
       intent: state.intent,
