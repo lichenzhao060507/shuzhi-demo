@@ -51,6 +51,12 @@
       <div class="ask-fixture">
         <span>示例企业</span>
         <select id="ask-fixture" aria-label="选择示例企业"></select>
+        <span>计划器</span>
+        <select id="ask-planner" aria-label="选择计划器">
+          <option value="rules">规则（离线）</option>
+          <option value="llm">模型（BYOK）</option>
+        </select>
+        <button id="llm-config" type="button" class="ask-mini">设置</button>
       </div>
     </div>
     <p class="subpage-lede">
@@ -114,6 +120,22 @@
   </div>
 </main>
 
+<dialog id="llm-dialog" class="llm-dialog">
+  <form method="dialog" id="llm-form">
+    <h2>模型计划器设置</h2>
+    <p class="llm-note">填自己的 OpenAI 兼容端点。密钥只存在本机 localStorage，不会发到本站服务器（本站没有服务器）。</p>
+    <label>Base URL<input id="llm-base" placeholder="https://api.openai.com/v1" autocomplete="off"></label>
+    <label>Model<input id="llm-model" placeholder="gpt-4o-mini / qwen-plus" autocomplete="off"></label>
+    <label>API Key<input id="llm-key" type="password" placeholder="sk-..." autocomplete="off"></label>
+    <p id="llm-status" class="llm-status"></p>
+    <div class="llm-actions">
+      <button type="button" id="llm-save" class="ask-send">保存</button>
+      <button type="button" id="llm-clear" class="ask-mini">清除</button>
+      <button value="close" class="ask-mini">关闭</button>
+    </div>
+  </form>
+</dialog>
+
 <div id="ask-gate" class="gate" hidden>
   <form id="gate-form" class="gate__card">
     <h2>进入智能问答</h2>
@@ -143,6 +165,7 @@
 <script src="assets/provenance.js?v=20261107"></script>
 <script src="assets/agent/memory.js?v=20261107"></script>
 <script src="assets/agent/claims.js?v=20261107"></script>
+<script src="assets/agent/planner.js?v=20261107"></script>
 <script src="assets/agent/kb.js?v=20261107"></script>
 <script src="assets/agent/tools.js?v=20261107"></script>
 <script src="assets/agent/graph.js?v=20261107"></script>

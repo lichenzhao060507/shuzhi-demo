@@ -70,6 +70,61 @@
     $("#gate-name").focus();
   }
 
+  /* ---------------- 计划器与模型配置（BYOK，只存本机） ---------------- */
+
+  const LLM_KEY = "advisor.ask.llm.v1";
+
+  function loadLLM() {
+    try { return JSON.parse(localStorage.getItem(LLM_KEY) || "{}") || {}; } catch (error) { return {}; }
+  }
+
+  function saveLLM(cfg) {
+    try { localStorage.setItem(LLM_KEY, JSON.stringify(cfg)); return true; } catch (error) { return false; }
+  }
+
+  function currentPlanner() {
+    const sel = $("#ask-planner");
+    return sel ? sel.value : "rules";
+  }
+
+  function bindPlanner() {
+    const sel = $("#ask-planner");
+    const dialog = $("#llm-dialog");
+    const cfg = loadLLM();
+
+    $("#llm-base").value = cfg.baseUrl || "";
+    $("#llm-model").value = cfg.model || "";
+    $("#llm-key").value = cfg.key || "";
+
+    $("#llm-config").addEventListener("click", () => dialog.showModal());
+    $("#llm-save").addEventListener("click", () => {
+      const next = {
+        baseUrl: $("#llm-base").value.trim(),
+        model: $("#llm-model").value.trim(),
+        key: $("#llm-key").value.trim(),
+      };
+      saveLLM(next);
+      $("#llm-status").textContent = next.baseUrl && next.model && next.key
+        ? "已保存，切到「模型（BYOK）」即可使用"
+        : "字段不完整：三者都要填才能用模型计划器";
+    });
+    $("#llm-clear").addEventListener("click", () => {
+      saveLLM({});
+      $("#llm-base").value = "";
+      $("#llm-model").value = "";
+      $("#llm-key").value = "";
+      $("#llm-status").textContent = "已清除本机保存的密钥";
+    });
+    sel.addEventListener("change", () => {
+      if (sel.value !== "llm") return;
+      const conf = loadLLM();
+      if (!conf.baseUrl || !conf.model || !conf.key) {
+        $("#llm-status").textContent = "还没配置端点与密钥";
+        dialog.showModal();
+      }
+    });
+  }
+
   /* ---------------- 数据 ---------------- */
 
   async function loadFixtures() {
@@ -277,6 +332,44 @@
     return wrap;
   }
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* 逐块流式渲染：先出结构，再一段段落下来；减少动态偏好时直接整段出 */
+  async function streamBot(payload) {
+    const flow = $("#ask-flow");
+    const wrap = el("div", { class: "msg msg--bot" });
+    const bubble = el("div", { class: "bubble" });
+    wrap.appendChild(bubble);
+    flow.appendChild(wrap);
+
+    const blocks = payload.blocks || [];
+    for (const block of blocks) {
+      const node = renderBlock(block);
+      if (!reducedMotion) {
+        node.classList.add("stream-in");
+        node.style.animationDelay = "0ms";
+      }
+      bubble.appendChild(node);
+      flow.scrollTop = flow.scrollHeight;
+      if (!reducedMotion) await sleep(70);
+    }
+
+    if (payload.citations && payload.citations.length) bubble.appendChild(renderCitations(payload));
+    if (payload.claims && payload.claims.total) bubble.appendChild(renderClaims(payload.claims));
+    if (payload.fallback) {
+      bubble.appendChild(el("p", { class: "bubble__flag", text: "这条是兜底回答：只给原文，不下结论。" }));
+    }
+    if (payload.suggested && payload.suggested.length) {
+      bubble.appendChild(el("div", { class: "chips" },
+        payload.suggested.map((text) => el("button", {
+          class: "chip", type: "button", text, onclick: () => send(text),
+        }))));
+    }
+    flow.scrollTop = flow.scrollHeight;
+    return wrap;
+  }
+
   async function send(text) {
     if (state.busy || !text) return;
     state.busy = true;
@@ -291,6 +384,7 @@
         result: state.sample.result,
         sample: state.sample,
         session: state.session,
+        options: { planner: currentPlanner(), llm: loadLLM() },
       }, (event) => {
         if (event.type === "node" && event.status === "running") {
           $("#trace-status").textContent = `正在${event.label}…`;
@@ -298,8 +392,8 @@
       });
 
       thinking.remove();
-      push("bot", { ...(out.answer || { blocks: [{ type: "p", text: "我没有组织出答案。" }] }), claims: out.claims });
-      renderTrace(out.trace);
+      await streamBot({ ...(out.answer || { blocks: [{ type: "p", text: "我没有组织出答案。" }] }), claims: out.claims });
+      renderTrace(out.trace, out.planner);
       remember(out, text);
       state.lastOtel = out.otel;
       record({ q: text, intent: out.intent, tools: out.tools, ms: out.ms, citations: (out.answer && out.answer.citations.length) || 0, fallback: Boolean(out.answer && out.answer.fallback), verified: out.verified });
@@ -316,9 +410,16 @@
 
   /* ---------------- 调用链 ---------------- */
 
-  function renderTrace(trace) {
+  function renderTrace(trace, planner) {
     const host = $("#trace-list");
     host.textContent = "";
+    if (planner && planner.used) {
+      host.appendChild(el("li", { "data-status": planner.used === "rules" ? "ok" : "ok" }, [
+        el("span", { class: "trace__idx", text: "P" }),
+        el("span", { class: "trace__label", text: "计划器：" + planner.used }),
+        el("span", { class: "trace__meta", text: planner.note ? "已回退" : "ok" }),
+      ]));
+    }
     trace.forEach((node, i) => {
       host.appendChild(el("li", { "data-status": node.status }, [
         el("span", { class: "trace__idx", text: String(i + 1).padStart(2, "0") }),
@@ -393,6 +494,7 @@
   async function start() {
     if (state.startedAt) return;
     state.startedAt = Date.now();
+    bindPlanner();
     await loadFixtures();
     renderMetrics();
 

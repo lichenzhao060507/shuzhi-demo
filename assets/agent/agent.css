@@ -176,6 +176,64 @@
 
 .is-thinking .bubble { opacity: .7; }
 
+/* 逐块流式渲染 */
+@keyframes stream-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.bubble .stream-in {
+  animation: stream-in 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble .stream-in { animation: none; }
+}
+
+/* 计划器与模型设置 */
+.ask-mini {
+  appearance: none;
+  border: 1px solid #2b4a62;
+  background: transparent;
+  color: #9fb6c6;
+  font: inherit;
+  font-size: 11.5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.ask-mini:hover { color: #eef6fb; border-color: #4a6f8c; }
+
+.llm-dialog {
+  border: 1px solid #2b4a62;
+  border-radius: 14px;
+  background: #0d2134;
+  color: #d9e6ef;
+  padding: 0;
+  width: min(440px, calc(100vw - 32px));
+}
+
+.llm-dialog::backdrop { background: rgba(4, 12, 20, .7); }
+.llm-dialog form { padding: 20px 22px 18px; display: grid; gap: 10px; }
+.llm-dialog h2 { margin: 0; font-size: 16px; color: #eef6fb; }
+.llm-note { margin: 0; font-size: 11.5px; line-height: 1.7; color: #8aa3b6; }
+.llm-dialog label { display: grid; gap: 5px; font-size: 12px; color: #8aa3b6; }
+
+.llm-dialog input {
+  border: 1px solid #2b4a62;
+  background: #0a1b2a;
+  color: #e6eef4;
+  font: inherit;
+  font-size: 12.5px;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.llm-status { margin: 0; min-height: 16px; font-size: 11px; color: #e0b071; }
+.llm-actions { display: flex; gap: 8px; align-items: center; }
+.llm-actions .ask-send { padding: 7px 14px; }
+
 .ask-suggest {
   display: flex;
   flex-wrap: wrap;

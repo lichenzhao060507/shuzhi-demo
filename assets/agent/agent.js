@@ -300,9 +300,32 @@
       },
       {
         id: "plan", label: "编排工具计划",
-        run: (c) => {
-          c.plan = plan(c.intent, text, session);
-          return c.plan;
+        run: async (c) => {
+          const wanted = (c.options && c.options.planner) || "rules";
+          const strategy = window.AdvisorPlanner ? window.AdvisorPlanner.get(wanted) : null;
+          let calls = null;
+          let used = "rules";
+          let note = "";
+          if (strategy) {
+            try {
+              calls = await strategy(c.intent, text, session, c.options || {});
+              used = wanted;
+            } catch (error) {
+              note = String(error.message || error);
+              calls = null;
+            }
+          }
+          // 契约校验：工具必须已注册、args 必须是对象；不过就回落规则
+          const check = window.AdvisorPlanner ? window.AdvisorPlanner.validate(calls) : { ok: true };
+          if (!calls || !check.ok) {
+            if (!note && !check.ok) note = check.reason;
+            calls = plan(c.intent, text, session);
+            used = used === "rules" ? "rules" : "rules(fallback)";
+          }
+          c.plan = calls;
+          c.plannerUsed = used;
+          c.plannerNote = note;
+          return calls;
         },
       },
       {
@@ -372,6 +395,7 @@
 
     const state = { ...ctx, session };
     const { trace } = await window.AdvisorGraph.run(nodes, state, onEvent);
+    const planner = { used: state.plannerUsed || "rules", note: state.plannerNote || "" };
 
     const ms = Math.round(performance.now() - started);
 
@@ -393,6 +417,7 @@
       answer,
       claims,
       trace,
+      planner,
       ms,
       intent: state.intent,
       verified: state.verifyResult,
