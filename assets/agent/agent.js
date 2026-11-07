@@ -24,6 +24,8 @@
     { intent: "pathway", re: /先做|先改|改哪|做什么|干什么|第一步|顺序|路线|怎么改|改造路径|从哪(开始|下手)|优先/ },
     { intent: "diagnosis", re: /诊断|问题在哪|瓶颈|卡在|短板/ },
     { intent: "policy", re: /政策|补贴|补助|文件|文号|申报|试点|验收|支持/ },
+    // 跨画像对比：跟…比 / 对比 / 相比
+    { intent: "compare", re: /对比|相比|比一比|比差|跟.{0,16}比|和.{0,16}比|另一家|别的样本/ },
     { intent: "case", re: /案例|别家|同行|有没有企业|借鉴|别人怎么/ },
     { intent: "paper", re: /论文|研究|文献|学术/ },
     { intent: "explain", re: /为什么|原因|依据|凭什么|怎么算的|哪来的/ },
@@ -46,6 +48,23 @@
     if (raw.length === 2 && raw[0] === "十") return 10 + (CN_NUM[raw[1]] || 1);
     if (raw.length === 2 && raw[1] === "十") return (CN_NUM[raw[0]] || 1) * 10;
     return CN_NUM[raw] || null;
+  }
+
+  /* 把「跟 ap2 比」「和 baseline 比」「跟只上系统那家比」解析成样本文件名 */
+  const SAMPLE_ALIAS = [
+    [/ap0|无等级/, "ap0_无等级.json"],
+    [/ap1|只买设备不联网/, "ap1_只买设备不联网.json"],
+    [/ap2|只上系统不跑流程/, "ap2_只上系统不跑流程.json"],
+    [/ap3|只做数据采集不做分析/, "ap3_只做数据采集不做分析.json"],
+    [/ap4|只追补贴不建能力/, "ap4_只追补贴不建能力.json"],
+    [/baseline|二级规范级/, "baseline_二级规范级.json"],
+  ];
+
+  function resolveSampleName(text, current) {
+    const hit = SAMPLE_ALIAS.find(([re]) => re.test(text));
+    if (hit) return hit[1];
+    // 没指定就挑一个和当前不同的默认对照
+    return current === "baseline_二级规范级.json" ? "ap1_只买设备不联网.json" : "baseline_二级规范级.json";
   }
 
   function parseScenario(text) {
@@ -90,6 +109,7 @@
         }
         return [{ tool: "evidence", args: ref ? { ref } : {} }];
       }
+      case "compare": return [{ tool: "compare", args: { target: resolveSampleName(text, session.profileName) } }];
       case "policy": return [{ tool: "policy", args: { query: text } }];
       case "case": return [{ tool: "case", args: { query: text } }];
       case "paper": return [{ tool: "paper", args: { query: text } }];
@@ -121,6 +141,7 @@
     diagnosis: "卡点在这儿：",
     scenario: "这个场景的情况：",
     evidence: "这些是原文与出处：",
+    compare: "两家放在一起看：",
     policy: "在政策库里检索到：",
     case: "案例库里有相似的做法：",
     paper: "论文库里相关的条目：",
@@ -357,16 +378,20 @@
         when: (c) => (c.plan || []).length > 0,
         run: async (c) => {
           const outputs = [];
+          let pool = "";
           for (const call of c.plan) {
             const out = await window.AdvisorTools.run(call.tool, {
               result: c.result,
               sample: c.sample,
               criteria: c.criteria,
+              sampleName: session.profileName,
               query: (call.args && call.args.query) || text,
             }, call.args);
+            if (out.pool) pool += JSON.stringify(out.pool);
             outputs.push(out);
           }
           c.outputs = outputs;
+          c.poolExtra = pool;
           return outputs.map((o) => o.tool);
         },
       },
@@ -379,7 +404,21 @@
       },
       {
         id: "verify", label: "自检数字与引用",
-        run: (c) => (c.verifyResult = verify(c)),
+        run: (c) => {
+          // 句级核验是唯一实现：数字可追溯 + 每句有字段或引用来源
+          if (window.AdvisorClaims) {
+            c.claims = window.AdvisorClaims.verify(c.answer, c.result, c.poolExtra);
+            c.verifyResult = {
+              ok: c.claims.unverified.length === 0,
+              missing: c.claims.unverified,
+              cited: c.claims.verified > 0,
+              reason: c.claims.unverified.length ? "存在未核验句" : "ok",
+            };
+          } else {
+            c.verifyResult = verify(c);
+          }
+          return c.verifyResult;
+        },
       },
       {
         id: "fallback", label: "长尾兜底",
@@ -440,7 +479,8 @@
 
     const answer = state.answer;
     const tools = (state.outputs || []).map((o) => o.tool);
-    const claims = window.AdvisorClaims ? window.AdvisorClaims.verify(answer, state.result) : null;
+    const claims = state.claims
+      || (window.AdvisorClaims ? window.AdvisorClaims.verify(answer, state.result, state.poolExtra) : null);
     return {
       answer,
       claims,

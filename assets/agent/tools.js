@@ -36,6 +36,23 @@
     return rows.find((row) => row.level === current + 1) || null;
   }
 
+  /* ---------- 样本加载（可在评测里注入替身，避免依赖网络） ---------- */
+  const SAMPLE_CACHE = new Map();
+
+  async function loadSampleData(name) {
+    if (SAMPLE_CACHE.has(name)) return SAMPLE_CACHE.get(name);
+    let data;
+    if (typeof window.AdvisorSampleLoader === "function") {
+      data = await window.AdvisorSampleLoader(name);
+    } else {
+      const res = await fetch("data/samples/" + encodeURIComponent(name));
+      if (!res.ok) throw new Error("样本载入失败：" + res.status);
+      data = await res.json();
+    }
+    SAMPLE_CACHE.set(name, data);
+    return data;
+  }
+
   /* ---------- 依据解析：全站唯一的溯源入口 ----------
    * 回答里的「看依据」、MCP 的 get_evidence、报告页的抽屉都从这一个池子取，
    * 避免同一个编号在不同地方给出不同原文。
@@ -100,6 +117,22 @@
       }
     }
     return out;
+  }
+
+  function summarize(result) {
+    const ev = result.evaluation || {};
+    const nxt = nextLevel(result);
+    const diagnosis = result.diagnosis || [];
+    const doNot = result.do_not || [];
+    return {
+      score: typeof ev.total_score === "number" ? Number(ev.total_score.toFixed(2)) : 0,
+      level: ev.level || 0,
+      levelName: ev.level ? `${ev.level_name}（${ev.level} 级）` : (ev.level_name || "无等级"),
+      gap: nxt ? Number(Math.max(0, nxt.min_score - (ev.total_score || 0)).toFixed(2)) : null,
+      bottleneck: diagnosis.length ? diagnosis[0].bottleneck : "",
+      doNot: doNot.length,
+      steps: (result.pathway || []).length,
+    };
   }
 
   function unmetScenarios(result, level) {
@@ -304,6 +337,50 @@
       },
     },
 
+    compare: {
+      label: "跨画像对比",
+      async run({ result, sampleName }, args) {
+        const name = (args && args.target) || "";
+        if (!name) return { blocks: [{ type: "p", text: "要跟哪份样本比？目前可用的有 ap0—ap4 与 baseline。" }], citations: [] };
+        let other;
+        try {
+          other = await loadSampleData(name);
+        } catch (error) {
+          return { blocks: [{ type: "p", text: `找不到样本「${name}」。` }], citations: [] };
+        }
+        const cur = summarize(result);
+        const tgt = summarize(other.result);
+        const delta = (a, b, digits) => {
+          if (typeof a !== "number" || typeof b !== "number") return "—";
+          const d = b - a;
+          return `${d > 0 ? "+" : ""}${d.toFixed(digits == null ? 2 : digits)}`;
+        };
+        return {
+          blocks: [
+            { type: "kv", rows: [
+              ["当前画像", `${cur.score} 分 · ${cur.levelName}`],
+              ["对比画像", `${tgt.score} 分 · ${tgt.levelName}（${name}）`],
+              ["分数差", delta(cur.score, tgt.score)],
+              ["距下一级差额", `${cur.gap == null ? "已最高" : cur.gap + " 分"} → ${tgt.gap == null ? "已最高" : tgt.gap + " 分"}`],
+            ] },
+            { type: "list", items: [
+              { title: "当前主要瓶颈", body: cur.bottleneck || "无" },
+              { title: "对比画像主要瓶颈", body: tgt.bottleneck || "无" },
+              { title: "不建议做", body: `当前 ${cur.doNot} 条 · 对比 ${tgt.doNot} 条` },
+              { title: "改造步数", body: `当前 ${cur.steps} 步 · 对比 ${tgt.steps} 步` },
+            ] },
+            { type: "note", text: "分数可跨画像比较；等级门槛与差额按各自画像算，不要混用。" },
+          ],
+          citations: [
+            ...collectEvidence(result, {}).slice(0, 2),
+            ...collectEvidence(other.result, {}).slice(0, 2),
+          ],
+          // 对比里出现的数字来自另一份样本，接地核验时一并纳入
+          pool: other.result,
+        };
+      },
+    },
+
     evidence: {
       label: "按编号取原文依据",
       run({ result, criteria, query }, args) {
@@ -420,6 +497,8 @@
       args: args || {},
       blocks: output.blocks || [],
       citations: output.citations || [],
+      // 跨画像工具会带回另一份样本，供句级核验把它的数字也纳入可追溯范围
+      pool: output.pool || null,
     };
   }
 

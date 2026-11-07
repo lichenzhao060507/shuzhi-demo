@@ -26,8 +26,9 @@
     return "";
   }
 
-  function numericPool(result) {
-    return (JSON.stringify(result || {}).match(/-?\d+(\.\d+)?/g) || []).map(Number);
+  function numericPool(result, extra) {
+    const text = JSON.stringify(result || {}) + (extra || "");
+    return (text.match(/-?\d+(\.\d+)?/g) || []).map(Number);
   }
 
   function traceable(value, pool) {
@@ -51,9 +52,9 @@
     return "说明";
   }
 
-  function verify(answer, result) {
+  function verify(answer, result, extraPool) {
     const blocks = (answer && answer.blocks) || [];
-    const pool = numericPool(result);
+    const pool = numericPool(result, extraPool);
     const items = [];
 
     blocks.forEach((block) => {

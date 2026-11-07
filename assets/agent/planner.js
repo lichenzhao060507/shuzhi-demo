@@ -8,7 +8,7 @@
 
   const VALID_TOOLS = new Set([
     "score", "gaps", "pathway", "step", "roi", "do_not",
-    "diagnosis", "scenario", "evidence", "policy", "case", "paper",
+    "diagnosis", "scenario", "evidence", "compare", "policy", "case", "paper",
   ]);
 
   /* ---------- 规则版：把意图翻成工具调用 ---------- */
@@ -44,6 +44,17 @@
           || String(text).match(/CASE-(\d{3})/i);
         const ref = !m ? "" : (/采集项/.test(m[0]) ? "采集项 " + m[1] : (/^S/i.test(m[0]) ? "S" + m[1] : "CASE-" + m[1]));
         return [{ tool: "evidence", args: ref ? { ref } : {} }];
+      }
+      case "compare": {
+        const alias = [
+          [/ap0|无等级/, "ap0_无等级.json"], [/ap1|只买设备不联网/, "ap1_只买设备不联网.json"],
+          [/ap2|只上系统不跑流程/, "ap2_只上系统不跑流程.json"], [/ap3|只做数据采集不做分析/, "ap3_只做数据采集不做分析.json"],
+          [/ap4|只追补贴不建能力/, "ap4_只追补贴不建能力.json"], [/baseline|二级规范级/, "baseline_二级规范级.json"],
+        ].find(([re]) => re.test(String(text)));
+        const current = session && session.profileName;
+        const fallback = current === "baseline_二级规范级.json"
+          ? "ap1_只买设备不联网.json" : "baseline_二级规范级.json";
+        return [{ tool: "compare", args: { target: alias ? alias[1] : fallback } }];
       }
       case "policy": return [{ tool: "policy", args: { query: text } }];
       case "case": return [{ tool: "case", args: { query: text } }];
@@ -106,6 +117,7 @@
     [/第\s*[一二两三四五六七八九十\d]+\s*步|花多少钱/, "step"],
     [/投入|产出|roi|回本/i, "roi"],
     [/不建议|别做|白花/, "do_not"],
+    [/对比|相比|跟.{0,6}比|和.{0,6}比/, "compare"],
     [/原文|出处/, "evidence"],
     [/S\d{2}|场景|设备管理|质量管理/, "scenario"],
     [/政策|补贴|资金/, "policy"],
