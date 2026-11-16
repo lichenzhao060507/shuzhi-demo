@@ -1,68 +1,96 @@
-# 静态演示站（评委点开就看的那一版）
+# 数改指导智能体 · 静态演示站
 
-纯静态：无后端、无构建、无第三方依赖。`index.html` + `assets/` + `data/` 直接丢进任何
-静态托管（nginx 子路径、OSS/COS、GitHub Pages）就能跑。
+面向中小企业数字化水平评测的静态演示站：按《中小企业数字化水平评测指标（2024 年版）》（工信厅企业〔2024〕56 号）给出等级判定、场景缺口、改造路径与投入产出排序，每个数字都能回到判据或原文。
+
+**在线演示：<https://lichenzhao060507.github.io/shuzhi-demo/>**
+
+纯静态：无后端、无构建步骤、无第三方运行时依赖，`index.html` 加 `assets/`、`data/` 即可运行。
+
+## 四个页面
+
+| 页面 | 内容 |
+|---|---|
+| `index.html` | 主站：评测方法、16 个应用场景、示例入口 |
+| `highlights.html` | 工具亮点：可回查、判据透明、路径排序 |
+| `report.html` | 示例企业的完整诊断报告（等级、缺口、路径、投入产出） |
+| `ask.html` | 智能问答：对当前示例企业追问等级、缺口、改造顺序与政策依据 |
+
+## 目录
 
 ```
-index.html            页面骨架
-assets/styles.css     设计令牌与全部样式（含深色模式）
-assets/engine.js      判据引擎：计分、定级、场景缺口（可直接 require，用于回归测试）
-assets/app.js         渲染与交互
-assets/img/           首屏配图（AI 生成的车间示意图，非实拍）
-data/criteria.json    官方判据（15 采集项 + 16 场景 + 四级门槛）
-data/fixtures.json    6 个示例企业的元信息
-data/samples/*.json   6 个示例企业的完整预计算结果（诊断 / 路径 / 排序 / 政策）
-data/policy-notes.json  与结论直接相关的政策注解
-official/             官方 PDF 原文（证据卡"打开原文"指向它）
-单文件版/             打包好的单文件 HTML，双击即可离线演示
+index.html / highlights.html / report.html / ask.html   四个页面
+.nojekyll                                                GitHub Pages 直出
+assets/
+  styles.css  redesign.css  typography.css  …            设计令牌、主题与各页面样式
+  engine.js                                              判据引擎：计分、定级、场景缺口
+  app.js                                                 主站渲染与交互
+  agent/                                                 问答页：检索、计划器、工具、记忆、声明核验
+  fonts/                                                 自托管 Noto Sans/Serif SC（含许可）
+  img/                                                   首屏与场景配图（AI 生成示意，非实拍）
+data/
+  criteria.json                                          15 个采集项、16 个场景、四级门槛
+  fixtures.json                                          6 个示例企业的元信息
+  samples/*.json                                         6 个示例企业的完整预计算结果
+  policy-notes.json                                      与结论直接相关的政策注解
+  agent/                                                 问答知识库：1349 个案例、118 篇文献、70 条政策、5 个公开案例
+official/                                                《评测指标（2024 年版）》PDF 原文
+beta/                                                    早期版本快照与设计评审记录
 ```
 
 ## 本地预览
 
 ```bash
-python -m http.server 8000 --directory static_site
-# 打开 http://127.0.0.1:8000
+python -m http.server 8000
+# 打开 http://127.0.0.1:8000/
 ```
 
-直接双击 `index.html` 不行：`file://` 会被同源策略拦住，读不到 `data/*.json`。
-要双击看，用 `单文件版/数改指导智能体-演示.html`。
+直接双击 `index.html` 不行：页面用 `fetch` 读 `data/*.json`，`file://` 会被同源策略拦住。
 
-## 数据从哪来（别再手工导出）
+## 判据与引擎
 
-```bash
-python tools/sync_site_data.py            # 从后端重导 data/
-python tools/sync_site_data.py --check    # 只比对：与后端不一致就返回 1
-node static_site/test-regression.mjs      # 浏览器引擎 vs 后端，6 份样本逐项比对
-node static_site/build-single.mjs         # 重新打包单文件版
-```
+`data/criteria.json` 是判据的唯一来源，四段结构：
 
-判据、结果、政策库任一改动后，这四条跑一遍再提交。`data/` 是**导出快照**，
-不是手写文件；`meta.generated_at` 故意写成固定说明文字，避免每次导出都产生无意义 diff。
+- `indicators`：15 个采集项，各带分值上限与选项；
+- `scenarios`：16 个应用场景，分约束性与非约束性；
+- `levels`：四级门槛（初始级 / 规范级 / 集成级 / 协同级），得分、达标场景数、其中约束性场景数**三项同时满足**才定级；
+- `source`：判据出处。
+
+`assets/engine.js` 是浏览器内的确定性实现，同时兼容 `require`，可直接用于回归测试：
+
+- 单选：`score = 选项索引 / (选项数 - 1) × 100`；
+- 多选：`score = 选中数 / 有效选项数 × 100`，「无」不计入分母；单选「无」得 0；
+- 单项：`points = max_points × score / 100`；
+- 总分：未取整 points 求和后 `round2`，采用 half-even（对齐 Python `round`，用 `toFixed` 会差 0.01）；
+- 定级：三项条件同时满足；
+- 场景缺失：按规则基线兜底为 1 级。
 
 ## 两条数据通路
 
-| 通路 | 数据来源 | 投入产出 |
+| 通路 | 数据来源 | 输出 |
 |---|---|---|
-| 示例企业 | `data/samples/*.json`（后端预计算） | 完整，含 ROI 区间与排序 |
-| 自定义画像 | `assets/engine.js` 浏览器内实算 | 不出金额，改出场景缺口优先级表 |
+| 示例企业 | `data/samples/*.json`，后端预计算 | 完整结果，含 ROI 区间与改造排序 |
+| 自定义画像 | `assets/engine.js` 浏览器内实算 | 等级与场景缺口优先级表，不含金额 |
 
-自定义画像不给金额是**故意的**：金额依赖后端的成本区间与成效弹性系数，前端没有这份库，
-编一个数出来会毁掉"可回查"这个立身之本。页面对应位置已写明。
+自定义画像不给金额是刻意的：金额依赖成本区间与成效弹性系数，这份系数库不在前端。编一个数出来会毁掉「可回查」，页面相应位置已注明。
 
-## 引擎与后端的对齐
+六个示例企业覆盖典型反模式：无等级、只买设备不联网、只上系统不跑流程、只做数据采集不做分析、只追补贴不建能力，加一个二级规范级基线。
 
-`engine.js` 是从 6 份样本反推并全量验证的：
+## 问答页
 
-- 单选：`score = 选项索引 / (选项数 - 1) × 100`
-- 多选：`score = 选中数 / 有效选项数 × 100`，「无」不计入分母，单选「无」得 0
-- 单项：`points = max_points × score / 100`
-- 总分：未取整 points 求和后 `round2`，采用 half-even（对齐 Python `round`，用 `toFixed` 会差 0.01）
-- 定级：得分、达标场景数、其中约束性场景数**三项同时满足**
-- 场景缺失：按规则基线兜底为 1 级（对齐后端 `rule_baseline`）
+`ask.html` 有两种计划器，可在页面上切换：
 
-`node static_site/test-regression.mjs` 当前：**6/6 通过，二级校验 6/6 通过**。
+- **规则（离线）**：零成本，按判据与知识库直接拼答，涉及政策的句子挂原文；
+- **模型（BYOK）**：用户自填 OpenAI 兼容端点与密钥，密钥只存在浏览器本地。
+
+回答里的数字一律取自确定性评测结果，检索不到就明说，不做补全。
 
 ## 部署
 
-见 `docs/` 与工作区里的《公网部署方案》。最短路径：nginx 里给这个目录一个 location，
-配 `auth_basic` 给评委账号密码；后端挂了也不影响，页面自动走预计算数据并在顶部标注。
+仓库已启用 GitHub Pages（`main` 分支根目录，`legacy` 构建，`.nojekyll` 保证 `assets/` 不被 Jekyll 处理）。换成 nginx / OSS / COS 只需把整个目录作为站点根，或挂在子路径下。
+
+## 说明
+
+- `beta/` 是早期版本快照，保留用于对比，不是入口。
+- `assets/img/` 的首屏与场景图是 AI 生成的车间示意图，不是实拍，页面未把它当证据使用。
+- `data/` 是导出快照而非手写文件；人工改数会与判据脱节。
+- 判据、政策库与展示层之间没有自动化校验，改动后请对照 `official/` 原文复核。
